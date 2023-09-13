@@ -290,7 +290,7 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
     state_folder = pums_folder + "state_data/"
     cross_walk_folder = data_dir + "GeoCorr/Public-use microdata area (PUMA)/"
     puma_equivalency = cross_walk_folder + "puma_equivalency.csv"
-    current_data_folder = pums_folder + "Current_Data/"
+    current_data_folder = pums_folder + "Current_Eligibility/"
     covered_populations_folder = data_dir + "Covered_Populations/"
 
     # Dictionary to map the geography to the code column and crosswalk file
