@@ -649,7 +649,6 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
 
             # If the code column is county, then add the rural column and county name column
             if code_column == "county":
-                print(new_df.columns.tolist())
                 if "rural" not in new_df.columns.tolist():
                     # Download the covered population file
                     covered_pops_df = pd.read_csv(covered_populations_folder + "covered_populations.csv")
@@ -681,12 +680,15 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
 
                 # Reorder the columns
                 new_df = new_df[columns]
-                if not add_col:
+                if "CountyName" not in new_df.columns.tolist():
                     # Read the crosswalk file
                     df = pd.read_csv(cw_file, header=0, dtype={"county": str})
 
                     # Drop the duplicate county rows
                     df = df.drop_duplicates(subset=["county"])
+
+                    new_df["county"] = new_df["county"].astype(str)
+                    new_df["county"] = new_df["county"].str.zfill(5)
 
                     # Add the "CountyName" column to the new dataframe
                     new_df = pd.merge(new_df, df[["county", "CountyName"]], on="county", how="left")
@@ -705,12 +707,15 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
 
             # If the code column is metdiv, then add the metdiv name column
             if code_column == "metdiv20":
-                if not add_col:
+                if "MetDivName" not in new_df.columns.tolist():
                     # Read the crosswalk file
                     df = pd.read_csv(cw_file, header=0, dtype={"metdiv20": str})
 
                     # Drop the duplicate metdiv rows
                     df = df.drop_duplicates(subset=["metdiv20"])
+
+                    new_df["metdiv20"] = new_df["metdiv20"].astype(str)
+                    new_df["metdiv20"] = new_df["metdiv20"].str.zfill(5)
 
                     # Add the "MetDivName" column to the new dataframe
                     new_df = pd.merge(new_df, df[["metdiv20", "MetDivName"]], on="metdiv20", how="left")
