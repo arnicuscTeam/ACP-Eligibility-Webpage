@@ -660,6 +660,8 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
                     covered_pops_df["county"] = covered_pops_df["county"].astype(str)
                     covered_pops_df["county"] = covered_pops_df["county"].str.zfill(5)
 
+                    new_df = new_df.astype({code_column: str}).str.zfill(5)
+
                     # Only keep county and rural columns
                     covered_pops_df = covered_pops_df[["county", "rural"]]
 
