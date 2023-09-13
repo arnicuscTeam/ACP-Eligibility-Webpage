@@ -687,6 +687,9 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
                     # Drop the duplicate county rows
                     df = df.drop_duplicates(subset=["county"])
 
+                    df["county"] = df["county"].astype(str)
+                    df["county"] = df["county"].str.zfill(5)
+
                     new_df["county"] = new_df["county"].astype(str)
                     new_df["county"] = new_df["county"].str.zfill(5)
 
@@ -713,6 +716,9 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
 
                     # Drop the duplicate metdiv rows
                     df = df.drop_duplicates(subset=["metdiv20"])
+
+                    df["metdiv20"] = df["metdiv20"].astype(str)
+                    df["metdiv20"] = df["metdiv20"].str.zfill(5)
 
                     new_df["metdiv20"] = new_df["metdiv20"].astype(str)
                     new_df["metdiv20"] = new_df["metdiv20"].str.zfill(5)
