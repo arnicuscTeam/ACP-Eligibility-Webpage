@@ -545,6 +545,8 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
         main_df = main_df.astype({code_column: str})
         main_df[code_column] = main_df[code_column].str.zfill(7)
 
+        main_df = main_df.fillna(0)
+
         # Return the df and the file name
         return main_df, file_name
 
@@ -737,6 +739,8 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
 
                 # Reorder the columns
                 new_df = new_df[columns]
+
+        new_df = new_df.fillna(0)
 
         new_df = new_df.astype({code_column: str})
 
