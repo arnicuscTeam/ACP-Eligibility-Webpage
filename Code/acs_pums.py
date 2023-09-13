@@ -291,6 +291,7 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
     cross_walk_folder = data_dir + "GeoCorr/Public-use microdata area (PUMA)/"
     puma_equivalency = cross_walk_folder + "puma_equivalency.csv"
     current_data_folder = pums_folder + "Current_Data/"
+    covered_populations_folder = data_dir + "Covered_Populations/"
 
     # Dictionary to map the geography to the code column and crosswalk file
     geography_mapping = {
@@ -481,9 +482,6 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
                     else:
                         original_df = original_df.drop(columns=[population_name + " Eligible"])
 
-            # Drop the columns that are no longer needed
-            original_df.drop(columns=["Current Num Eligible", "Current Num Ineligible"], inplace=True)
-
             # Round the percentage eligible column to two decimal places
             main_df["Percentage Eligible"] = main_df["Percentage Eligible"].round(2)
             original_df["Current Percentage Eligible"] = original_df["Current Percentage Eligible"].round(2)
@@ -506,7 +504,7 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
                                                                           main_df["Current " + population_name +
                                                                                   " Eligible"]) * 100
                     main_df = main_df.drop(
-                        columns=[population_name + " Eligible", "Current " + population_name + " Eligible"])
+                        columns=["Current " + population_name + " Eligible", "difference_" + population_var])
 
             # Drop numeric columns that are no longer needed
             main_df = main_df.drop(columns=["Num Eligible", "Num Ineligible"])
@@ -515,10 +513,28 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
             main_df = main_df.loc[:, ~main_df.columns.duplicated()]
 
             # Move the current percentage eligible column to the 2nd column
-            cols = main_df.columns.tolist()
-            cols.pop(cols.index("Current Percentage Eligible"))
-            cols.insert(1, "Current Percentage Eligible")
-            main_df = main_df[cols]
+            columns = main_df.columns.tolist()
+
+            # Remove the current percentage eligible column
+            columns.remove("Current Percentage Eligible")
+
+            # Add the current percentage eligible column to the second position
+            columns.insert(1, "Current Percentage Eligible")
+
+            # Remove the current num ineligible column
+            columns.remove("Current Num Ineligible")
+
+            # Add the current num ineligible column to the second position
+            columns.insert(1, "Current Num Ineligible")
+
+            # Remove the current num eligible column
+            columns.remove("Current Num Eligible")
+
+            # Add the current num eligible column to the second position
+            columns.insert(1, "Current Num Eligible")
+
+            # Reorder the columns
+            main_df = main_df[columns]
 
             # Rename the "Percentage Eligible" column to "New Percentage Eligible"
             main_df = main_df.rename(columns={"Percentage Eligible": "New Percentage Eligible"})
@@ -577,9 +593,6 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
                     else:
                         original_df = original_df.drop(columns=[population_name + " Eligible"])
 
-            # Drop the columns that are no longer needed
-            original_df.drop(columns=["Current Num Eligible", "Current Num Ineligible"], inplace=True)
-
             # Round the percentage eligible column to two decimal places
             new_df["New Percentage Eligible"] = new_df["New Percentage Eligible"].round(2)
             original_df["Current Percentage Eligible"] = original_df["Current Percentage Eligible"].round(2)
@@ -610,11 +623,105 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
             # Combine duplicate columns
             new_df = new_df.loc[:, ~new_df.columns.duplicated()]
 
-            # Move the current percentage eligible column to the 2nd column
-            cols = new_df.columns.tolist()
-            cols.pop(cols.index("Current Percentage Eligible"))
-            cols.insert(1, "Current Percentage Eligible")
-            new_df = new_df[cols]
+            # Move the current percentage eligible column to the second position
+            columns = new_df.columns.tolist()
+
+            # Remove the current percentage eligible column
+            columns.remove("Current Percentage Eligible")
+
+            # Add the current percentage eligible column to the second position
+            columns.insert(1, "Current Percentage Eligible")
+
+            # Remove the current percentage eligible column
+            columns.remove("Current Num Ineligible")
+
+            # Add the current percentage eligible column to the second position
+            columns.insert(1, "Current Num Ineligible")
+
+            # Remove the current percentage eligible column
+            columns.remove("Current Num Eligible")
+
+            # Add the current percentage eligible column to the second position
+            columns.insert(1, "Current Num Eligible")
+
+            # Reorder the columns
+            new_df = new_df[columns]
+
+            # If the code column is county, then add the rural column and county name column
+            if code_column == "county":
+                if not add_col:
+                    # Download the covered population file
+                    covered_pops_df = pd.read_csv(covered_populations_folder + "covered_populations.csv")
+
+                    # Rename the columns
+                    covered_pops_df = covered_pops_df.rename(columns={"geo_id": "county"})
+
+                    # Turn the county column into a string and zero fill it
+                    covered_pops_df["county"] = covered_pops_df["county"].astype(str)
+                    covered_pops_df["county"] = covered_pops_df["county"].str.zfill(5)
+
+                    # Only keep county and rural columns
+                    covered_pops_df = covered_pops_df[["county", "rural"]]
+
+                    # Merge the dataframes
+                    new_df = pd.merge(new_df, covered_pops_df, on="county", how="left")
+
+                # Move the rural column to the second position
+                columns = new_df.columns.tolist()
+
+                # Move the rural column to the second position
+                columns.remove("rural")
+
+                # Add the rural column to the second position
+                columns.insert(1, "rural")
+
+                # Reorder the columns
+                new_df = new_df[columns]
+                if not add_col:
+                    # Read the crosswalk file
+                    df = pd.read_csv(cw_file, header=0, dtype={"county": str})
+
+                    # Drop the duplicate county rows
+                    df = df.drop_duplicates(subset=["county"])
+
+                    # Add the "CountyName" column to the new dataframe
+                    new_df = pd.merge(new_df, df[["county", "CountyName"]], on="county", how="left")
+
+                # Move the CountyName column to the second position
+                columns = new_df.columns.tolist()
+
+                # Remove the CountyName column
+                columns.remove("CountyName")
+
+                # Add the CountyName column to the second position
+                columns.insert(1, "CountyName")
+
+                # Reorder the columns
+                new_df = new_df[columns]
+
+            # If the code column is metdiv, then add the metdiv name column
+            if code_column == "metdiv20":
+                if not add_col:
+                    # Read the crosswalk file
+                    df = pd.read_csv(cw_file, header=0, dtype={"metdiv20": str})
+
+                    # Drop the duplicate metdiv rows
+                    df = df.drop_duplicates(subset=["metdiv20"])
+
+                    # Add the "MetDivName" column to the new dataframe
+                    new_df = pd.merge(new_df, df[["metdiv20", "MetDivName"]], on="metdiv20", how="left")
+
+                # Move the MetDivName column to the second position
+                columns = new_df.columns.tolist()
+
+                # Remove the MetDivName column
+                columns.remove("MetDivName")
+
+                # Add the MetDivName column to the second position
+                columns.insert(1, "MetDivName")
+
+                # Reorder the columns
+                new_df = new_df[columns]
 
         new_df = new_df.astype({code_column: str})
 
@@ -628,8 +735,6 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
             new_df[code_column] = new_df[code_column].str.zfill(5)
         elif code_column == "cd118":
             new_df[code_column] = new_df[code_column].str.zfill(4)
-        elif code_column == "sduni20":
-            new_df[code_column] = new_df[code_column].str.zfill(5)
 
         # Return the df and the file name
         return new_df, file_name
