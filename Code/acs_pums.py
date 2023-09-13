@@ -649,7 +649,7 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
 
             # If the code column is county, then add the rural column and county name column
             if code_column == "county":
-                if not add_col:
+                if "rural" not in new_df.columns.tolist():
                     # Download the covered population file
                     covered_pops_df = pd.read_csv(covered_populations_folder + "covered_populations.csv")
 
