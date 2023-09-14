@@ -29,8 +29,8 @@ def load_state_map(data_dir: str, eligibility_df: pd.DataFrame) -> folium.Map:
 
     colormap = LinearColormap(
         colors=['red', 'yellow', 'green'],  # Customize the colors as needed
-        vmin=merged_data['Total Change Percentage Eligible'].min(),
-        vmax=merged_data['Total Change Percentage Eligible'].max(),
+        vmin=merged_data['Total Change Percentage Eligible'].max(),
+        vmax=merged_data['Total Change Percentage Eligible'].min(),
     )
 
     def color_function(feature):
@@ -43,7 +43,7 @@ def load_state_map(data_dir: str, eligibility_df: pd.DataFrame) -> folium.Map:
     folium.GeoJson(
         merged_data,
         style_function=lambda feature: {
-            'fillColor': color_function(feature),
+            'fillColor': color_function(abs(feature)),
             'color': 'black',
             'weight': 1,
             'fillOpacity': 0.6
