@@ -32,16 +32,15 @@ def load_state_map(data_dir: str, eligibility_df: pd.DataFrame) -> folium.Map:
 
     merged_data = merged_data.dropna(subset=["Total Change Percentage Eligible"])
 
-    min_value = merged_data['Total Change Percentage Eligible'].min()
-    max_value = merged_data['Total Change Percentage Eligible'].max()
-
-    cmap = sns.color_palette("coolwarm", as_cmap=True)  # You can choose a different palette
-    norm = plt.Normalize(vmin=min_value, vmax=max_value)
+    colormap = LinearColormap(
+        colors=['red', 'yellow', 'green'],  # Customize the colors as needed
+        vmin=merged_data['total_percentage_difference'].min(),
+        vmax=merged_data['total_percentage_difference'].max(),
+    )
 
     def color_function(feature):
-        value = feature['properties']['Total Change Percentage Eligible']
-        color = cmap(norm(value))
-        return f"rgb({int(color[0] * 255)}, {int(color[1] * 255)}, {int(color[2] * 255)})"
+        value = feature['properties']['total_percentage_difference']
+        return colormap(value)
 
 
     # Create a map without specifying a center or zoom level
@@ -58,6 +57,8 @@ def load_state_map(data_dir: str, eligibility_df: pd.DataFrame) -> folium.Map:
         tooltip=folium.GeoJsonTooltip(fields=['NAME'], aliases=['State'], sticky=True),
         popup=folium.GeoJsonPopup(fields=columns, localize=True),
     ).add_to(m)
+
+    colormap.add_to(m)
 
     return m
 
