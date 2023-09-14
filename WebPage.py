@@ -5,8 +5,6 @@ import pandas as pd
 import streamlit as st
 from streamlit_folium import folium_static as fs, st_folium as stf
 
-
-
 # Set page name
 st.set_page_config(page_title='ACP Eligibility', page_icon=':bar_chart:', layout='wide')
 
@@ -56,9 +54,8 @@ if st.button('Submit'):
                                           not_eng_very_well)
     st.download_button(label='Download Data', data=df.to_csv(index=False), file_name=file_name, mime='text/csv')
 
-
     if geography == "State":
-        m = load_state_map(df)
+        m = load_state_map("Data/", df)
 
         # Display the map
         fs(m, width=1000, height=500)
