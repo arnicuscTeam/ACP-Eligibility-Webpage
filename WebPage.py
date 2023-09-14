@@ -91,4 +91,4 @@ if st.button('Submit'):
             tooltip=folium.GeoJsonTooltip(fields=['NAME', 'Population'], aliases=['State', 'Population'], sticky=True),
         ).add_to(m)
 
-    fs(m, width=1000, height=500)
+    st.write(m._repr_html_(), unsafe_allow_html=True)
