@@ -5,6 +5,7 @@ import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 import geopandas as gpd
+from geopy.geocoders import Nominatim
 
 
 # Set page name
