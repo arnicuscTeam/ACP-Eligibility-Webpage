@@ -9,6 +9,9 @@ def load_state_map(eligibility_df: pd.DataFrame) -> folium.Map:
 
     columns = eligibility_df.columns.tolist()
 
+    columns.remove("state")
+    columns.insert(0, "NAME")
+
     eligibility_df["state"] = eligibility_df["state"].astype(str).str.zfill(2)
 
     state_shapefile = 'Data/ShapeFiles/States/tl_2022_us_state.shp'
