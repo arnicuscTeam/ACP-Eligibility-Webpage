@@ -86,7 +86,8 @@ if st.button('Submit'):
             'fillColor': 'green',  # You can customize the state colors
             'color': 'black',
             'weight': 1,
-            'fillOpacity': 0.6
+            'fillOpacity': 0.6,
+            'popup': f"State: {feature['properties']['NAME']}<br>"
         }
     ).add_to(m)
 
