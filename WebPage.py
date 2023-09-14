@@ -59,9 +59,7 @@ if st.button('Submit'):
 
         st.subheader('Map')
 
-        if st.button('Load Map'):
+        m = load_map("Data/", geography, df)
 
-            m = load_map("Data/", geography, df)
-
-            # Display the map
-            fs(m, width=1000, height=500)
+        # Display the map
+        fs(m, width=1000, height=500)
