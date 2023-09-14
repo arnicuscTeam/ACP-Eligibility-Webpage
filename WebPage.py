@@ -89,4 +89,4 @@ if st.button('Submit'):
     ).add_to(m)
 
     # Display the map
-    st.write(m)
+    st.write(m._repr_html_(), unsafe_allow_html=True)
