@@ -34,12 +34,12 @@ def load_state_map(data_dir: str, eligibility_df: pd.DataFrame) -> folium.Map:
 
     colormap = LinearColormap(
         colors=['red', 'yellow', 'green'],  # Customize the colors as needed
-        vmin=merged_data['total_percentage_difference'].min(),
-        vmax=merged_data['total_percentage_difference'].max(),
+        vmin=merged_data['Total Change Percentage Eligible'].min(),
+        vmax=merged_data['Total Change Percentage Eligible'].max(),
     )
 
     def color_function(feature):
-        value = feature['properties']['total_percentage_difference']
+        value = feature['properties']['Total Change Percentage Eligible']
         return colormap(value)
 
 
