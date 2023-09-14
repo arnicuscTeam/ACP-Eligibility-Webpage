@@ -90,3 +90,5 @@ if st.button('Submit'):
     ).add_to(m)
 
     st_data = stf(m, height=600)
+
+    st.write(st_data)
