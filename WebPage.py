@@ -1,5 +1,4 @@
 import folium
-
 from Code.acs_pums import determine_eligibility
 import pandas as pd
 import streamlit as st
@@ -60,13 +59,33 @@ if st.button('Submit'):
 
     state_shapefile = 'Data/ShapeFiles/States/tl_2022_us_state.shp'
 
+    # Read the Shapefile
     gdf = gpd.read_file(state_shapefile)
 
-    # Create an empty Folium map centered around the data
-    m = folium.Map(location=[gdf['geometry'].centroid.y.mean(), gdf['geometry'].centroid.x.mean()], zoom_start=10)
+    # Convert to GeoJSON format
+    gdf.to_file('output.geojson', driver='GeoJSON')
 
-    # Add the shapefile data to the map
-    folium.GeoJson(gdf).add_to(m)
+    data = {
+        'NAME': ['West Virginia', 'California', 'Texas', 'Florida'],
+        'Population': [19530351, 39538223, 29145505, 21538187],
+    }
 
-    # Display the map in Streamlit
+    df_data = pd.DataFrame(data)
+
+    merged_data = gdf.merge(df_data, left_on='NAME', right_on='NAME', how='left')
+
+    # Create a map without specifying a center or zoom level
+    m = folium.Map([37.090240, -95.712891], zoom_start=4)
+
+    folium.GeoJson(
+        'output.geojson',
+        style_function=lambda feature: {
+            'fillColor': 'green',  # You can customize the state colors
+            'color': 'black',
+            'weight': 1,
+            'fillOpacity': 0.6,
+            'popup': f"State: {feature['properties']['NAME']}<br>Population: {merged_data[merged_data['NAME'] == feature['properties']['NAME']]['Population'].values[0]}"
+        }
+    ).add_to(m)
+
     st.markdown(m._repr_html_(), unsafe_allow_html=True)
