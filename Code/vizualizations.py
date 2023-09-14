@@ -27,10 +27,20 @@ def load_state_map(data_dir: str, eligibility_df: pd.DataFrame) -> folium.Map:
 
     merged_data = gdf.merge(eligibility_df, left_on='GEOID', right_on='state', how='left')
 
+    min_value = eligibility_df['Total Change Percentage Eligible'].min()
+    max_value = eligibility_df['Total Change Percentage Eligible'].max()
+
+
+    if min_value is None or pd.isna(min_value):
+        min_value = 0
+
+    if max_value is None or pd.isna(max_value):
+        max_value = 100
+
     colormap = LinearColormap(
         colors=['red', 'yellow', 'green'],  # Customize the colors as needed
-        vmin=merged_data['Total Change Percentage Eligible'].min(),
-        vmax=merged_data['Total Change Percentage Eligible'].max(),
+        vmin=min_value,
+        vmax=max_value,
     )
 
     def color_function(feature):
