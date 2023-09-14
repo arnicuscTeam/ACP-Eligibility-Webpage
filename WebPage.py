@@ -55,18 +55,16 @@ if st.button('Submit'):
                                           not_eng_very_well)
     st.download_button(label='Download Data', data=df.to_csv(index=False), file_name=file_name, mime='text/csv')
 
-    maps = st.checkbox('Show Maps')
 
-    if maps:
-        state_shapefile = 'Data/ShapeFiles/States/tl_2022_us_state.shp'
+    state_shapefile = 'Data/ShapeFiles/States/tl_2022_us_state.shp'
 
-        gdf = gpd.read_file(state_shapefile)
+    gdf = gpd.read_file(state_shapefile)
 
-        # Create a matplotlib figure and axis
-        fig, ax = plt.subplots()
+    # Create a matplotlib figure and axis
+    fig, ax = plt.subplots()
 
-        # Plot the shapefile data
-        gdf.plot(ax=ax)
+    # Plot the shapefile data
+    gdf.plot(ax=ax)
 
-        # Display the map in Streamlit
-        st.pyplot(fig)
+    # Display the map in Streamlit
+    st.pyplot(fig)
