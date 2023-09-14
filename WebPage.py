@@ -83,12 +83,13 @@ if st.button('Submit'):
     folium.GeoJson(
         'output.geojson',
         style_function=lambda feature: {
-            'fillColor': 'green',  # You can customize the state colors
+            'fillColor': 'green',
             'color': 'black',
             'weight': 1,
-            'fillOpacity': 0.6,
-            'popup': f"State: {feature['properties']['NAME']}<br>"
-        }
+            'fillOpacity': 0.6
+        },
+        tooltip=folium.GeoJsonTooltip(fields=['NAME'], aliases=['State'], sticky=True),
+        popup=folium.GeoJsonPopup(fields=['NAME'], aliases=['State'], localize=True),
     ).add_to(m)
 
     fs(m, width=1000, height=500)
