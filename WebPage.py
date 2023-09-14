@@ -2,6 +2,7 @@ import folium
 from Code.acs_pums import determine_eligibility
 import pandas as pd
 import streamlit as st
+from streamlit_folium import st_folium as stf
 import matplotlib.pyplot as plt
 import geopandas as gpd
 from geopy.geocoders import Nominatim
@@ -88,5 +89,4 @@ if st.button('Submit'):
         }
     ).add_to(m)
 
-    # Display the map
-    st.write(m._repr_html_(), unsafe_allow_html=True)
+    st_data = stf(m, height=600)
