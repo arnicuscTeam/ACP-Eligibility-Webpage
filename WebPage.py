@@ -63,9 +63,6 @@ if st.button('Submit'):
     # Read the Shapefile
     gdf = gpd.read_file(state_shapefile)
 
-    # Convert to GeoJSON format
-    gdf.to_file('output.geojson', driver='GeoJSON')
-
     data = {
         'NAME': ['West Virginia', 'California', 'Texas', 'Florida'],
         'Population': [19530351, 39538223, 29145505, 21538187],
@@ -75,13 +72,13 @@ if st.button('Submit'):
 
     merged_data = gdf.merge(df_data, left_on='NAME', right_on='NAME', how='left')
 
-    st.write(merged_data)
+    merged_data.to_file('output.geojson', driver='GeoJSON')
 
     # Create a map without specifying a center or zoom level
     m = folium.Map([37.090240, -95.712891], zoom_start=4)
 
     folium.GeoJson(
-        'output.geojson',
+        merged_data,
         style_function=lambda feature: {
             'fillColor': 'green',
             'color': 'black',
@@ -89,7 +86,7 @@ if st.button('Submit'):
             'fillOpacity': 0.6
         },
         tooltip=folium.GeoJsonTooltip(fields=['NAME'], aliases=['State'], sticky=True),
-        popup=folium.GeoJsonPopup(fields=['NAME'], aliases=['State'], localize=True),
+        popup=folium.GeoJsonPopup(fields=['NAME', 'Population'], aliases=['State', 'Population'], localize=True),
     ).add_to(m)
 
     fs(m, width=1000, height=500)
