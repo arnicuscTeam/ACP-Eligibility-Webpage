@@ -1,4 +1,5 @@
-import subprocess
+import folium
+
 from Code.acs_pums import determine_eligibility
 import pandas as pd
 import streamlit as st
@@ -60,11 +61,11 @@ if st.button('Submit'):
 
     gdf = gpd.read_file(state_shapefile)
 
-    # Create a matplotlib figure and axis
-    fig, ax = plt.subplots()
+    # Create an empty Folium map centered around the data
+    m = folium.Map(location=[gdf['geometry'].centroid.y.mean(), gdf['geometry'].centroid.x.mean()], zoom_start=10)
 
-    # Plot the shapefile data
-    gdf.plot(ax=ax)
+    # Add the shapefile data to the map
+    folium.GeoJson(gdf).add_to(m)
 
     # Display the map in Streamlit
-    st.pyplot(fig)
+    st.markdown(m._repr_html_(), unsafe_allow_html=True)
