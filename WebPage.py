@@ -89,6 +89,4 @@ if st.button('Submit'):
         }
     ).add_to(m)
 
-    data = stf(m, height=700, width=500)
-
-    fs(m)
+    fs(m, width=1000, height=500)
