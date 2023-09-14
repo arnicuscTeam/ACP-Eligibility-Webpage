@@ -159,7 +159,9 @@ def load_map(data_dir: str, geography: str, eligibility_df: pd.DataFrame) -> fol
         raise ValueError("Invalid geography selected")
 
     # Merge the dataframes
-    merged_data = gdf.merge(eligibility_df, left_on=mergeon, right_on=geo_dict[geography], how='right')
+    merged_data = gdf.merge(eligibility_df, left_on=mergeon, right_on=geo_dict[geography], how='left')
+
+    merged_data = merged_data.dropna(subset=["Total Change Percentage Eligible"])
 
     colormap = LinearColormap(
         colors=['green', 'yellow', 'red'],
