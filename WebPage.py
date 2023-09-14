@@ -3,10 +3,10 @@ from Code.acs_pums import determine_eligibility
 import pandas as pd
 import streamlit as st
 
-subprocess.check_call(['pip', 'install', "folium"])
-subprocess.check_call(['pip', 'install', "geopandas"])
-import folium
-import geopandas as gpd
+# subprocess.check_call(['pip', 'install', "folium"])
+# subprocess.check_call(['pip', 'install', "geopandas"])
+# import folium
+# import geopandas as gpd
 
 # Set page name
 st.set_page_config(page_title='ACP Eligibility', page_icon=':bar_chart:', layout='wide')
@@ -57,17 +57,17 @@ if st.button('Submit'):
                                           not_eng_very_well)
     st.download_button(label='Download Data', data=df.to_csv(index=False), file_name=file_name, mime='text/csv')
 
-    maps = st.checkbox('Show Maps')
-
-    if maps:
-        state_shapefile = 'Data/ShapeFiles/States/tl_2022_us_state.shp'
-
-        gdf = gpd.read_file(state_shapefile)
-
-        m = folium.Map(location=[gdf['geometry'].centroid.y.mean(), gdf['geometry'].centroid.x.mean()], zoom_start=10)
-
-        # Add the shapefile data to the map
-        folium.GeoJson(gdf).add_to(m)
-
-        # Display the map in Streamlit
-        st.markdown(m._repr_html_(), unsafe_allow_html=True)
+    # maps = st.checkbox('Show Maps')
+    #
+    # if maps:
+    #     state_shapefile = 'Data/ShapeFiles/States/tl_2022_us_state.shp'
+    #
+    #     gdf = gpd.read_file(state_shapefile)
+    #
+    #     m = folium.Map(location=[gdf['geometry'].centroid.y.mean(), gdf['geometry'].centroid.x.mean()], zoom_start=10)
+    #
+    #     # Add the shapefile data to the map
+    #     folium.GeoJson(gdf).add_to(m)
+    #
+    #     # Display the map in Streamlit
+    #     st.markdown(m._repr_html_(), unsafe_allow_html=True)
