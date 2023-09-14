@@ -75,6 +75,8 @@ if st.button('Submit'):
 
     merged_data = gdf.merge(df_data, left_on='NAME', right_on='NAME', how='left')
 
+    st.write(merged_data)
+
     # Create a map without specifying a center or zoom level
     m = folium.Map([37.090240, -95.712891], zoom_start=4)
 
