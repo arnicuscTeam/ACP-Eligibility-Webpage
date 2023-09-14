@@ -12,8 +12,6 @@ from streamlit_folium import folium_static as fs, st_folium as stf
 
 
 def load_state_map(data_dir: str, eligibility_df: pd.DataFrame) -> folium.Map:
-    eligibility_df.fillna(0, inplace=True)
-
     eligibility_df["Total Change Percentage Eligible"] = (eligibility_df["Current Percentage Eligible"] -
                                                           eligibility_df["New Percentage Eligible"])
 
@@ -31,6 +29,8 @@ def load_state_map(data_dir: str, eligibility_df: pd.DataFrame) -> folium.Map:
     gdf = gpd.read_file(state_shapefile)
 
     merged_data = gdf.merge(eligibility_df, left_on='GEOID', right_on='state', how='left')
+
+    merged_data = merged_data.dropna(subset=["Total Change Percentage Eligible"])
 
     min_value = merged_data['Total Change Percentage Eligible'].min()
     max_value = merged_data['Total Change Percentage Eligible'].max()
