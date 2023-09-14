@@ -1,6 +1,6 @@
 import folium
 from Code.acs_pums import determine_eligibility
-from Code.vizualizations import load_state_map
+from Code.vizualizations import load_map
 import pandas as pd
 import streamlit as st
 from streamlit_folium import folium_static as fs, st_folium as stf
@@ -54,8 +54,14 @@ if st.button('Submit'):
                                           not_eng_very_well)
     st.download_button(label='Download Data', data=df.to_csv(index=False), file_name=file_name, mime='text/csv')
 
-    if geography == "State":
-        m = load_state_map("Data/", df)
 
-        # Display the map
-        fs(m, width=1000, height=500)
+    if geography != "ZIP/ZCTA":
+
+        st.subheader('Map')
+
+        if st.button('Load Map'):
+
+            m = load_map("Data/", geography, df)
+
+            # Display the map
+            fs(m, width=1000, height=500)

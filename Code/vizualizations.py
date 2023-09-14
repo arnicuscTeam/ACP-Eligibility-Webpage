@@ -23,7 +23,7 @@ def load_state_map(data_dir: str, eligibility_df: pd.DataFrame) -> folium.Map:
 
     eligibility_df["state"] = eligibility_df["state"].astype(str).str.zfill(2)
 
-    state_shapefile = data_dir + 'ShapeFiles/States/tl_2022_us_state.shp'
+    state_shapefile = data_dir + 'ShapeFiles/STATES/tl_2022_us_state.shp'
 
     # Read the Shapefile
     gdf = gpd.read_file(state_shapefile)
@@ -70,17 +70,23 @@ def load_map(data_dir: str, geography: str, eligibility_df: pd.DataFrame) -> fol
     :return: The folium map
     """
 
+    eligibility_df["Total Change Percentage Eligible"] = (eligibility_df["Current Percentage Eligible"] -
+                                                          eligibility_df["New Percentage Eligible"])
+
     geo_dict = {"Public-use microdata area (PUMA)": "puma22",
                 "118th Congress (2023-2024)": "cd118",
                 "State": "state",
                 "County": "county",
-                "ZIP/ZCTA": "zcta",
                 "Metropolitan division": "metdiv20"}
 
     columns = eligibility_df.columns.tolist()
 
     columns.remove(geo_dict[geography])
     columns.insert(0, "NAME")
+
+    aliases = columns.copy()
+    aliases[0] = geo_dict[geography]
+
 
     if geography == "Public-use microdata area (PUMA)":
         eligibility_df[geo_dict[geography]] = eligibility_df[geo_dict[geography]].astype(str).str.zfill(7)
@@ -100,12 +106,15 @@ def load_map(data_dir: str, geography: str, eligibility_df: pd.DataFrame) -> fol
                         temp_gdf = gpd.read_file(shapefiles + folder + "/" + file)
                         gdf = gpd.GeoDataFrame(pd.concat([gdf, temp_gdf], ignore_index=True))
 
+        mergeon = "GEOID20"
+
     elif geography == "118th Congress (2023-2024)":
         eligibility_df[geo_dict[geography]] = eligibility_df[geo_dict[geography]].astype(str).str.zfill(4)
 
         shapefiles = data_dir + 'ShapeFiles/CD/'
 
         gdf = gpd.GeoDataFrame()
+
 
         for folder in os.listdir(shapefiles):
 
@@ -119,24 +128,24 @@ def load_map(data_dir: str, geography: str, eligibility_df: pd.DataFrame) -> fol
                         temp_gdf = gpd.read_file(shapefiles + folder + "/" + file)
                         gdf = gpd.GeoDataFrame(pd.concat([gdf, temp_gdf], ignore_index=True))
 
+        mergeon = "GEOID20"
 
     elif geography == "State":
         eligibility_df[geo_dict[geography]] = eligibility_df[geo_dict[geography]].astype(str).str.zfill(2)
 
-        shapefile = data_dir + 'ShapeFiles/States/tl_2022_us_state.shp'
+        shapefile = data_dir + 'ShapeFiles/STATES/tl_2022_us_state.shp'
         gdf = gpd.read_file(shapefile)
+
+        mergeon = "GEOID"
 
     elif geography == "County":
         eligibility_df[geo_dict[geography]] = eligibility_df[geo_dict[geography]].astype(str).str.zfill(5)
 
-        shapefile = data_dir + 'ShapeFiles/Counties/tl_2022_us_county.shp'
-        gdf = gpd.read_file(shapefile)
+        zip_folder = data_dir + 'ShapeFiles/COUNTY/tl_2022_us_county.zip'
 
-    elif geography == "ZIP/ZCTA":
-        eligibility_df[geo_dict[geography]] = eligibility_df[geo_dict[geography]].astype(str).str.zfill(5)
+        gdf = gpd.read_file(f"zip://{zip_folder}!tl_2022_us_county.shp")
 
-        shapefile = data_dir + 'ShapeFiles/ZIP/tl_2022_us_zcta520.shp'
-        gdf = gpd.read_file(shapefile)
+        mergeon = "GEOID"
 
     elif geography == "Metropolitan division":
         eligibility_df[geo_dict[geography]] = eligibility_df[geo_dict[geography]].astype(str).str.zfill(5)
@@ -144,11 +153,23 @@ def load_map(data_dir: str, geography: str, eligibility_df: pd.DataFrame) -> fol
         shapefile = data_dir + 'ShapeFiles/Metropolitan_Division/tl_2021_us_metdiv.shp'
         gdf = gpd.read_file(shapefile)
 
+        mergeon = "METDIVFP"
+
     else:
         raise ValueError("Invalid geography selected")
 
-    # Read the Shapefile
-    merged_data = gdf.merge(eligibility_df, left_on='GEOID', right_on=geo_dict[geography], how='left')
+    # Merge the dataframes
+    merged_data = gdf.merge(eligibility_df, left_on=mergeon, right_on=geo_dict[geography], how='right')
+
+    colormap = LinearColormap(
+        colors=['green', 'yellow', 'red'],
+        vmin=merged_data['Total Change Percentage Eligible'].min(),
+        vmax=merged_data['Total Change Percentage Eligible'].max(),
+    )
+
+    def color_function(feature):
+        value = feature['properties']['Total Change Percentage Eligible']
+        return colormap(value)
 
     # Create a map without specifying a center or zoom level
     m = folium.Map([37.090240, -95.712891], zoom_start=4)
@@ -156,7 +177,7 @@ def load_map(data_dir: str, geography: str, eligibility_df: pd.DataFrame) -> fol
     folium.GeoJson(
         merged_data,
         style_function=lambda feature: {
-            'fillColor': 'green',
+            'fillColor': color_function(feature),
             'color': 'black',
             'weight': 1,
             'fillOpacity': 0.6
