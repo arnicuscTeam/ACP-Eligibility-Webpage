@@ -2,7 +2,7 @@ import folium
 from Code.acs_pums import determine_eligibility
 import pandas as pd
 import streamlit as st
-from streamlit_folium import st_folium as stf
+from streamlit_folium import folium_static as fs, st_folium as stf
 import matplotlib.pyplot as plt
 import geopandas as gpd
 from geopy.geocoders import Nominatim
@@ -91,4 +91,4 @@ if st.button('Submit'):
 
     data = stf(m, height=700, width=500)
 
-    st.write(data)
+    fs(m)
