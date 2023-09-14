@@ -55,11 +55,11 @@ if st.button('Submit'):
     st.download_button(label='Download Data', data=df.to_csv(index=False), file_name=file_name, mime='text/csv')
 
 
-    # if geography != "ZIP/ZCTA":
-    #
-    #     st.subheader('Map')
-    #
-    #     m = load_map("Data/", geography, df)
-    #
-    #     # Display the map
-    #     fs(m, width=1000, height=500)
+    if geography != "ZIP/ZCTA":
+
+        st.subheader('Map')
+
+        m = load_map("Data/", geography, df)
+
+        # Display the map
+        fs(m, width=1000, height=500)
