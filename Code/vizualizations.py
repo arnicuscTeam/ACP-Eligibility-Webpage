@@ -28,12 +28,10 @@ def load_state_map(data_dir: str, eligibility_df: pd.DataFrame) -> folium.Map:
     # Read the Shapefile
     gdf = gpd.read_file(state_shapefile)
 
-    merged_data = gdf.merge(eligibility_df, left_on='GEOID', right_on='state', how='left')
-
-    merged_data = merged_data.dropna(subset=["Total Change Percentage Eligible"])
+    merged_data = gdf.merge(eligibility_df, left_on='GEOID', right_on='state', how='right')
 
     colormap = LinearColormap(
-        colors=['red', 'yellow', 'green'],  # Customize the colors as needed
+        colors=['green', 'yellow', 'red'],
         vmin=merged_data['Total Change Percentage Eligible'].min(),
         vmax=merged_data['Total Change Percentage Eligible'].max(),
     )
