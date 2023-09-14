@@ -1,11 +1,10 @@
 import folium
 from Code.acs_pums import determine_eligibility
+from Code.vizualizations import load_state_map
 import pandas as pd
 import streamlit as st
 from streamlit_folium import folium_static as fs, st_folium as stf
-import matplotlib.pyplot as plt
-import geopandas as gpd
-from geopy.geocoders import Nominatim
+
 
 
 # Set page name
@@ -58,35 +57,8 @@ if st.button('Submit'):
     st.download_button(label='Download Data', data=df.to_csv(index=False), file_name=file_name, mime='text/csv')
 
 
-    state_shapefile = 'Data/ShapeFiles/States/tl_2022_us_state.shp'
+    if geography == "State":
+        m = load_state_map(df)
 
-    # Read the Shapefile
-    gdf = gpd.read_file(state_shapefile)
-
-    data = {
-        'NAME': ['West Virginia', 'California', 'Texas', 'Florida'],
-        'Population': [19530351, 39538223, 29145505, 21538187],
-    }
-
-    df_data = pd.DataFrame(data)
-
-    merged_data = gdf.merge(df_data, left_on='NAME', right_on='NAME', how='left')
-
-    merged_data.to_file('output.geojson', driver='GeoJSON')
-
-    # Create a map without specifying a center or zoom level
-    m = folium.Map([37.090240, -95.712891], zoom_start=4)
-
-    folium.GeoJson(
-        merged_data,
-        style_function=lambda feature: {
-            'fillColor': 'green',
-            'color': 'black',
-            'weight': 1,
-            'fillOpacity': 0.6
-        },
-        tooltip=folium.GeoJsonTooltip(fields=['NAME'], aliases=['State'], sticky=True),
-        popup=folium.GeoJsonPopup(fields=['NAME', 'Population'], aliases=['State', 'Population'], localize=True),
-    ).add_to(m)
-
-    fs(m, width=1000, height=500)
+        # Display the map
+        fs(m, width=1000, height=500)

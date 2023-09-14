@@ -1,36 +1,36 @@
-import matplotlib.pyplot as plt
 import geopandas as gpd
-from geopy.geocoders import Nominatim
+import pandas as pd
 import folium
-
-# # 1534 E. 22nd St, Los Angeles, CA
-# address = input("Enter an address: ")
-#
-# geolocator = Nominatim(user_agent="acp-eligibility")
-#
-# location = geolocator.geocode(address)
-#
-# if location:
-#
-#     m = folium.Map(location=[location.latitude, location.longitude], zoom_start=15)
-#
-#     folium.Marker([location.latitude, location.longitude], popup=address).add_to(m)
-#
-#     m.save("map.html")
+from streamlit_folium import folium_static as fs, st_folium as stf
 
 
-shape_file = '../Data/ShapeFiles/States/tl_2022_us_state.shp'
-gdf = gpd.read_file(shape_file)
 
-gdf.to_file('output.geojson', driver='GeoJSON')
+def load_state_map(eligibility_df: pd.DataFrame) -> folium.Map:
 
-m = folium.Map(location=[37.090240,-95.712891], zoom_start=4)
+    columns = eligibility_df.columns.tolist()
 
-# Add the GeoJSON data to the map
-geojson_layer = folium.GeoJson('output.geojson').add_to(m)
+    eligibility_df["state"] = eligibility_df["state"].astype(str).str.zfill(2)
 
-# for feature in geojson_layer.data['features']:
-#     popup_text = feature['properties']['your_property_name']
-#     folium.Popup(popup_text).add_to(feature['properties']['popup'])
+    state_shapefile = 'Data/ShapeFiles/States/tl_2022_us_state.shp'
 
-m.save('maptwo.html')
+    # Read the Shapefile
+    gdf = gpd.read_file(state_shapefile)
+
+    merged_data = gdf.merge(eligibility_df, left_on='GEOID', right_on='state', how='left')
+
+    # Create a map without specifying a center or zoom level
+    m = folium.Map([37.090240, -95.712891], zoom_start=4)
+
+    folium.GeoJson(
+        merged_data,
+        style_function=lambda feature: {
+            'fillColor': 'green',
+            'color': 'black',
+            'weight': 1,
+            'fillOpacity': 0.6
+        },
+        tooltip=folium.GeoJsonTooltip(fields=['NAME'], aliases=['State'], sticky=True),
+        popup=folium.GeoJsonPopup(fields=columns, localize=True),
+    ).add_to(m)
+
+    return m
