@@ -1,6 +1,8 @@
 import os
 import urllib.request
 import zipfile
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 import geopandas as gpd
 import pandas as pd
@@ -27,25 +29,17 @@ def load_state_map(data_dir: str, eligibility_df: pd.DataFrame) -> folium.Map:
 
     merged_data = gdf.merge(eligibility_df, left_on='GEOID', right_on='state', how='left')
 
-    min_value = eligibility_df['Total Change Percentage Eligible'].min()
-    max_value = eligibility_df['Total Change Percentage Eligible'].max()
+    min_value = merged_data['Total Change Percentage Eligible'].min()
+    max_value = merged_data['Total Change Percentage Eligible'].max()
 
-
-    if min_value is None or pd.isna(min_value):
-        min_value = 0
-
-    if max_value is None or pd.isna(max_value):
-        max_value = 100
-
-    colormap = LinearColormap(
-        colors=['red', 'yellow', 'green'],  # Customize the colors as needed
-        vmin=min_value,
-        vmax=max_value,
-    )
+    cmap = sns.color_palette("coolwarm", as_cmap=True)  # You can choose a different palette
+    norm = plt.Normalize(vmin=min_value, vmax=max_value)
 
     def color_function(feature):
         value = feature['properties']['Total Change Percentage Eligible']
-        return colormap(value)
+        color = cmap(norm(value))
+        return f"rgb({int(color[0] * 255)}, {int(color[1] * 255)}, {int(color[2] * 255)})"
+
 
     # Create a map without specifying a center or zoom level
     m = folium.Map([37.090240, -95.712891], zoom_start=4)
@@ -61,8 +55,6 @@ def load_state_map(data_dir: str, eligibility_df: pd.DataFrame) -> folium.Map:
         tooltip=folium.GeoJsonTooltip(fields=['NAME'], aliases=['State'], sticky=True),
         popup=folium.GeoJsonPopup(fields=columns, localize=True),
     ).add_to(m)
-
-    colormap.add_to(m)
 
     return m
 
