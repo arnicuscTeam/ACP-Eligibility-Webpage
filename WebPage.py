@@ -78,17 +78,14 @@ if st.button('Submit'):
     # Create a map without specifying a center or zoom level
     m = folium.Map([37.090240, -95.712891], zoom_start=4)
 
-    for index, row in merged_data.iterrows():
-        popup_text = f"<b>{row['NAME']}</b><br>Population: {row['Population']}"
-        folium.GeoJson(
-            row['geometry'],
-            style_function=lambda feature: {
-                'fillColor': 'green',
-                'color': 'black',
-                'weight': 1,
-                'fillOpacity': 0.6
-            },
-            tooltip=folium.GeoJsonTooltip(fields=['NAME', 'Population'], aliases=['State', 'Population'], sticky=True),
-        ).add_to(m)
+    folium.GeoJson(
+        'output.geojson',
+        style_function=lambda feature: {
+            'fillColor': 'green',  # You can customize the state colors
+            'color': 'black',
+            'weight': 1,
+            'fillOpacity': 0.6
+        }
+    ).add_to(m)
 
-    st.write(m._repr_html_(), unsafe_allow_html=True)
+    fs(m, width=1000, height=500)
