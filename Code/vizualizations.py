@@ -12,8 +12,11 @@ from streamlit_folium import folium_static as fs, st_folium as stf
 
 
 def load_state_map(data_dir: str, eligibility_df: pd.DataFrame) -> folium.Map:
+    eligibility_df.fillna(0, inplace=True)
+
     eligibility_df["Total Change Percentage Eligible"] = (eligibility_df["Current Percentage Eligible"] -
                                                           eligibility_df["New Percentage Eligible"])
+
 
     columns = eligibility_df.columns.tolist()
 
