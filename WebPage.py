@@ -2,7 +2,7 @@ import subprocess
 from Code.acs_pums import determine_eligibility
 import pandas as pd
 import streamlit as st
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import geopandas as gpd
 
 
@@ -55,18 +55,18 @@ if st.button('Submit'):
                                           not_eng_very_well)
     st.download_button(label='Download Data', data=df.to_csv(index=False), file_name=file_name, mime='text/csv')
 
-    # maps = st.checkbox('Show Maps')
-    #
-    # if maps:
-    #     state_shapefile = 'Data/ShapeFiles/States/tl_2022_us_state.shp'
-    #
-    #     gdf = gpd.read_file(state_shapefile)
-    #
-    #     # Create a matplotlib figure and axis
-    #     fig, ax = plt.subplots()
-    #
-    #     # Plot the shapefile data
-    #     gdf.plot(ax=ax)
-    #
-    #     # Display the map in Streamlit
-    #     st.pyplot(fig)
+    maps = st.checkbox('Show Maps')
+
+    if maps:
+        state_shapefile = 'Data/ShapeFiles/States/tl_2022_us_state.shp'
+
+        gdf = gpd.read_file(state_shapefile)
+
+        # Create a matplotlib figure and axis
+        fig, ax = plt.subplots()
+
+        # Plot the shapefile data
+        gdf.plot(ax=ax)
+
+        # Display the map in Streamlit
+        st.pyplot(fig)
