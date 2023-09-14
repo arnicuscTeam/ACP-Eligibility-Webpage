@@ -1,6 +1,7 @@
 import os
 
 import pandas as pd
+import geopandas as gpd
 
 
 # Function to crosswalk PUMS data from 2012 pumas to 2020 pumas
