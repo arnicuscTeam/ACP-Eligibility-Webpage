@@ -1,10 +1,12 @@
-import folium
-
+import subprocess
 from Code.acs_pums import determine_eligibility
 import pandas as pd
 import streamlit as st
-import geopandas as gpd
 
+subprocess.check_call(['pip', 'install', "folium"])
+subprocess.check_call(['pip', 'install', "geopandas"])
+import folium
+import geopandas as gpd
 
 # Set page name
 st.set_page_config(page_title='ACP Eligibility', page_icon=':bar_chart:', layout='wide')
@@ -58,7 +60,6 @@ if st.button('Submit'):
     maps = st.checkbox('Show Maps')
 
     if maps:
-
         state_shapefile = 'Data/ShapeFiles/States/tl_2022_us_state.shp'
 
         gdf = gpd.read_file(state_shapefile)
