@@ -183,7 +183,7 @@ def load_map(data_dir: str, geography: str, eligibility_df: pd.DataFrame) -> fol
         return colormap(value)
 
     # Create a map without specifying a center or zoom level
-    m = folium.Map([37.090240, -95.712891], zoom_start=4)
+    m = folium.Map([37.090240, -95.712891], zoom_start=4, tiles=None)
 
     folium.GeoJson(
         merged_data,
