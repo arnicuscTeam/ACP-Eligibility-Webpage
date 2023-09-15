@@ -49,17 +49,33 @@ not_eng_very_well = int(st.checkbox('Does Not Speak English Very Well'))
 st.subheader('Download Data')
 if st.button('Submit'):
     st.write("Wait for file to download...")
-    df, file_name = determine_eligibility("Data/", povpip, has_pap, has_ssip, has_hins4, has_snap, geography, aian,
-                                          asian, black, nhpi, white, hispanic, veteran, elderly, disability,
-                                          not_eng_very_well)
+
+
+    @st.cache
+    def load_temp_df(temp_povpip, temp_has_pap, temp_has_ssip, temp_has_hins4, temp_has_snap, temp_geography, temp_aian,
+                     temp_asian, temp_black, temp_nhpi, temp_white, temp_hispanic, temp_veteran, temp_elderly,
+                     temp_disability, temp_not_eng_very_well):
+        temp_df, temp_file_name = determine_eligibility("Data/", temp_povpip, temp_has_pap, temp_has_ssip,
+                                                        temp_has_hins4, temp_has_snap, temp_geography, temp_aian,
+                                                        temp_asian, temp_black, temp_nhpi, temp_white, temp_hispanic,
+                                                        temp_veteran, temp_elderly, temp_disability,
+                                                        temp_not_eng_very_well)
+        return temp_df, temp_file_name
+
+
+    df, file_name = load_temp_df(povpip, has_pap, has_ssip, has_hins4, has_snap, geography, aian, asian, black, nhpi,
+                                 white, hispanic, veteran, elderly, disability, not_eng_very_well)
     st.download_button(label='Download Data', data=df.to_csv(index=False), file_name=file_name, mime='text/csv')
 
-
     if geography != "ZIP/ZCTA":
-
         st.subheader('Map')
 
-        m = load_map("Data/", geography, df)
+
+        @st.cache
+        def load_temp_map(geo, data_frame):
+            m = load_map("Data/", geo, data_frame)
+            return m
+
 
         # Display the map
-        fs(m, width=1000, height=500)
+        fs(load_temp_map(geography, df), width=1800, height=600)
