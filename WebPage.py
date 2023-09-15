@@ -45,6 +45,8 @@ elderly = int(st.checkbox('Elderly'))
 disability = int(st.checkbox('Disability'))
 not_eng_very_well = int(st.checkbox('Does Not Speak English Very Well'))
 
+df = pd.DataFrame()
+
 # Submit button
 st.subheader('Download Data')
 if st.button('Submit'):
@@ -55,7 +57,7 @@ if st.button('Submit'):
     st.download_button(label='Download Data', data=df.to_csv(index=False), file_name=file_name, mime='text/csv')
 
 
-if geography != "ZIP/ZCTA":
+if geography != "ZIP/ZCTA" and not df.empty:
 
     st.subheader('Map')
 
