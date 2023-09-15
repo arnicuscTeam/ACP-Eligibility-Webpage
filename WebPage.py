@@ -59,18 +59,9 @@ if st.button('Submit'):
 
         st.subheader('Map')
 
-        if st.button('Load Map'):
-            st.write("Loading map...")
+        st.write("Loading map...")
 
-            m = load_map("Data/", geography, df)
+        m = load_map("Data/", geography, df)
 
-            # Display the map
-            fs(m, width=100, height=500)
-
-            # Download an image of the map
-            st.subheader('Download Map')
-            if st.button('Download Map'):
-
-                m.save("map.html")
-                st.download_button(label='Download Map', data=open("map.html", 'rb').read(), file_name="map.html",
-                                   mime='text/html')
+        # Display the map
+        fs(m, width=100, height=500)
