@@ -42,7 +42,7 @@ def load_state_map(data_dir: str, eligibility_df: pd.DataFrame) -> folium.Map:
 
 
     # Create a map without specifying a center or zoom level
-    m = folium.Map([37.090240, -95.712891], zoom_start=4)
+    m = folium.Map([37.090240, -95.712891], zoom_start=4, tiles='stamenterrain')
 
     folium.GeoJson(
         merged_data,
