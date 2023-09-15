@@ -56,16 +56,14 @@ if st.button('Submit'):
                                           not_eng_very_well)
     st.download_button(label='Download Data', data=df.to_csv(index=False), file_name=file_name, mime='text/csv')
 
+    if geography != "ZIP/ZCTA" and geography != "County":
+        st.subheader('Map')
 
-if geography != "ZIP/ZCTA" and not df.empty and geography != "County":
+        st.write("Loading map...")
 
-    st.subheader('Map')
+        m = load_map("Data/", geography, df)
 
-    st.write("Loading map...")
+        # Display the map
+        fs(m, width=1000, height=500)
 
-    m = load_map("Data/", geography, df)
-
-    # Display the map
-    fs(m, width=1000, height=500)
-
-    st.cache_data.clear()
+        st.cache_data.clear()
