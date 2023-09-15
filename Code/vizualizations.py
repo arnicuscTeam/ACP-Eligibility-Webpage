@@ -193,7 +193,7 @@ def load_map(data_dir: str, geography: str, eligibility_df: pd.DataFrame) -> fol
             'weight': 1,
             'fillOpacity': 0.6
         },
-        tooltip=folium.GeoJsonTooltip(fields=name, aliases=[geo_dict[geography]], sticky=True),
+        tooltip=folium.GeoJsonTooltip(fields=[name], aliases=[geo_dict[geography]], sticky=True),
         popup=folium.GeoJsonPopup(fields=columns, aliases=aliases, localize=True),
     ).add_to(m)
 
