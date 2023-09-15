@@ -7,7 +7,7 @@ from streamlit_folium import folium_static as fs, st_folium as stf
 
 # Set page name
 st.set_page_config(page_title='ACP Eligibility', page_icon=':bar_chart:', layout='wide')
-
+st.cache_data.clear()
 # Set page title
 st.header('ACP Eligibility Criteria')
 
@@ -65,3 +65,5 @@ if st.button('Submit'):
 
         # Display the map
         fs(m, width=1000, height=500)
+
+        st.cache_data.clear()
