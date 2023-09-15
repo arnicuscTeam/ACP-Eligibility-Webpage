@@ -123,7 +123,7 @@ def load_map(data_dir: str, geography: str, eligibility_df: pd.DataFrame) -> fol
 
         mergeon = "GEOID20"
 
-        name = "NAMELSAD20"
+        name = "CountyName"
 
     elif geography == "State":
         eligibility_df[geo_dict[geography]] = eligibility_df[geo_dict[geography]].astype(str).str.zfill(2)
@@ -149,12 +149,12 @@ def load_map(data_dir: str, geography: str, eligibility_df: pd.DataFrame) -> fol
     elif geography == "Metropolitan division":
         eligibility_df[geo_dict[geography]] = eligibility_df[geo_dict[geography]].astype(str).str.zfill(5)
 
-        shapefile = data_dir + 'ShapeFiles/Metropolitan_Division/tl_2021_us_metdiv.shp'
+        shapefile = data_dir + 'ShapeFiles/METDIV/tl_2021_us_metdiv.shp'
         gdf = gpd.read_file(shapefile)
 
         mergeon = "METDIVFP"
 
-        name = "NAME"
+        name = "MetDivName"
 
     else:
         raise ValueError("Invalid geography selected")
