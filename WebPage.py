@@ -67,4 +67,10 @@ if st.button('Submit'):
             # Display the map
             fs(m, width=100, height=500)
 
-            st.write("Map loaded!")
+            # Download an image of the map
+            st.subheader('Download Map')
+            if st.button('Download Map'):
+
+                m.save("map.html")
+                st.download_button(label='Download Map', data=open("map.html", 'rb').read(), file_name="map.html",
+                                   mime='text/html')
