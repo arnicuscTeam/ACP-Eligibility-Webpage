@@ -64,6 +64,6 @@ if st.button('Submit'):
         m = load_map("Data/", geography, df)
 
         # Display the map
-        fs(m, width=1200, height=1000)
+        fs(m, width=1200, height=800)
 
         st.cache_data.clear()
