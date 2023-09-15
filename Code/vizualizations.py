@@ -79,15 +79,6 @@ def load_map(data_dir: str, geography: str, eligibility_df: pd.DataFrame) -> fol
                 "County": "county",
                 "Metropolitan division": "metdiv20"}
 
-    columns = eligibility_df.columns.tolist()
-
-    columns.remove(geo_dict[geography])
-    columns.insert(0, "NAME")
-
-    aliases = columns.copy()
-    aliases[0] = geo_dict[geography]
-
-
     if geography == "Public-use microdata area (PUMA)":
         eligibility_df[geo_dict[geography]] = eligibility_df[geo_dict[geography]].astype(str).str.zfill(7)
 
@@ -107,6 +98,8 @@ def load_map(data_dir: str, geography: str, eligibility_df: pd.DataFrame) -> fol
                         gdf = gpd.GeoDataFrame(pd.concat([gdf, temp_gdf], ignore_index=True))
 
         mergeon = "GEOID20"
+
+        name = "NAMELSAD20"
 
     elif geography == "118th Congress (2023-2024)":
         eligibility_df[geo_dict[geography]] = eligibility_df[geo_dict[geography]].astype(str).str.zfill(4)
@@ -130,6 +123,8 @@ def load_map(data_dir: str, geography: str, eligibility_df: pd.DataFrame) -> fol
 
         mergeon = "GEOID20"
 
+        name = "NAMELSAD20"
+
     elif geography == "State":
         eligibility_df[geo_dict[geography]] = eligibility_df[geo_dict[geography]].astype(str).str.zfill(2)
 
@@ -137,6 +132,8 @@ def load_map(data_dir: str, geography: str, eligibility_df: pd.DataFrame) -> fol
         gdf = gpd.read_file(shapefile)
 
         mergeon = "GEOID"
+
+        name = "NAME"
 
     elif geography == "County":
         eligibility_df[geo_dict[geography]] = eligibility_df[geo_dict[geography]].astype(str).str.zfill(5)
@@ -147,6 +144,8 @@ def load_map(data_dir: str, geography: str, eligibility_df: pd.DataFrame) -> fol
 
         mergeon = "GEOID"
 
+        name = "NAME"
+
     elif geography == "Metropolitan division":
         eligibility_df[geo_dict[geography]] = eligibility_df[geo_dict[geography]].astype(str).str.zfill(5)
 
@@ -155,8 +154,18 @@ def load_map(data_dir: str, geography: str, eligibility_df: pd.DataFrame) -> fol
 
         mergeon = "METDIVFP"
 
+        name = "NAME"
+
     else:
         raise ValueError("Invalid geography selected")
+
+    columns = eligibility_df.columns.tolist()
+
+    columns.remove(geo_dict[geography])
+    columns.insert(0, name)
+
+    aliases = columns.copy()
+    aliases[0] = geo_dict[geography]
 
     # Merge the dataframes
     merged_data = gdf.merge(eligibility_df, left_on=mergeon, right_on=geo_dict[geography], how='left')
@@ -184,8 +193,8 @@ def load_map(data_dir: str, geography: str, eligibility_df: pd.DataFrame) -> fol
             'weight': 1,
             'fillOpacity': 0.6
         },
-        tooltip=folium.GeoJsonTooltip(fields=['NAME'], aliases=[geo_dict[geography]], sticky=True),
-        popup=folium.GeoJsonPopup(fields=columns, localize=True),
+        tooltip=folium.GeoJsonTooltip(fields=name, aliases=[geo_dict[geography]], sticky=True),
+        popup=folium.GeoJsonPopup(fields=columns, aliases=aliases, localize=True),
     ).add_to(m)
 
     return m
