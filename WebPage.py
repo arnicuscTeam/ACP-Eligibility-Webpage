@@ -60,8 +60,11 @@ if st.button('Submit'):
         st.subheader('Map')
 
         if st.button('Load Map'):
+            st.write("Loading map...")
 
             m = load_map("Data/", geography, df)
 
             # Display the map
             fs(m, width=100, height=500)
+
+            st.write("Map loaded!")
