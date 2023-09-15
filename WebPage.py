@@ -1,6 +1,6 @@
 import folium
 from Code.acs_pums import determine_eligibility
-from Code.vizualizations import load_map
+from Code.vizualizations import load_map as lm
 import pandas as pd
 import streamlit as st
 from streamlit_folium import folium_static as fs, st_folium as stf
@@ -48,13 +48,11 @@ not_eng_very_well = int(st.checkbox('Does Not Speak English Very Well'))
 # Submit button
 st.subheader('Download Data')
 if st.button('Submit'):
-    st.write("Wait for file to download...")
-
 
     @st.cache
-    def load_temp_df(temp_povpip, temp_has_pap, temp_has_ssip, temp_has_hins4, temp_has_snap, temp_geography, temp_aian,
-                     temp_asian, temp_black, temp_nhpi, temp_white, temp_hispanic, temp_veteran, temp_elderly,
-                     temp_disability, temp_not_eng_very_well):
+    def download_data(temp_povpip, temp_has_pap, temp_has_ssip, temp_has_hins4, temp_has_snap, temp_geography, temp_aian,
+                      temp_asian, temp_black, temp_nhpi, temp_white, temp_hispanic, temp_veteran, temp_elderly,
+                      temp_disability, temp_not_eng_very_well):
         temp_df, temp_file_name = determine_eligibility("Data/", temp_povpip, temp_has_pap, temp_has_ssip,
                                                         temp_has_hins4, temp_has_snap, temp_geography, temp_aian,
                                                         temp_asian, temp_black, temp_nhpi, temp_white, temp_hispanic,
@@ -63,19 +61,18 @@ if st.button('Submit'):
         return temp_df, temp_file_name
 
 
-    df, file_name = load_temp_df(povpip, has_pap, has_ssip, has_hins4, has_snap, geography, aian, asian, black, nhpi,
-                                 white, hispanic, veteran, elderly, disability, not_eng_very_well)
+    df, file_name = download_data(povpip, has_pap, has_ssip, has_hins4, has_snap, geography, aian, asian, black, nhpi,
+                                  white, hispanic, veteran, elderly, disability, not_eng_very_well)
     st.download_button(label='Download Data', data=df.to_csv(index=False), file_name=file_name, mime='text/csv')
 
-    if geography != "ZIP/ZCTA":
+    if geography != "ZIP/ZCTA" and geography != "County":
         st.subheader('Map')
 
-
         @st.cache
-        def load_temp_map(geo, data_frame):
-            m = load_map("Data/", geo, data_frame)
+        def load_map(geo, data_frame):
+            m = lm("Data/", geo, data_frame)
             return m
 
 
         # Display the map
-        fs(load_temp_map(geography, df), width=1800, height=600)
+        fs(load_map(geography, df), width=1800, height=600)
