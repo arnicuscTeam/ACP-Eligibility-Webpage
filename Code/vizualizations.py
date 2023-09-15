@@ -197,6 +197,8 @@ def load_map(data_dir: str, geography: str, eligibility_df: pd.DataFrame) -> fol
         popup=folium.GeoJsonPopup(fields=columns, aliases=aliases, localize=True),
     ).add_to(m)
 
+    colormap.add_to(m)
+
     return m
 
 
