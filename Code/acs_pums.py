@@ -215,6 +215,7 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
         "ZIP/ZCTA": ("zcta", "United_States_Public-Use-Microdata-Area-(Puma)_to_ZIP-ZCTA.csv")
     }
     geo_col = geography_mapping[geography][0]
+    cw_file = geography_mapping[geography][1]
 
     # Get the code column and crosswalk file
     if geo_col == "zcta":
