@@ -347,15 +347,15 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
     # Else, add the criteria to the file name dynamically
     else:
         if povpip != 200:
-            file_name = file_name + "_povpip_" + str(povpip)
+            file_name += "_povpip_" + str(povpip)
         if has_pap == 1:
-            file_name = file_name + "_has_pap"
+            file_name += "_has_pap"
         if has_ssip == 1:
-            file_name = file_name + "_has_ssip"
+            file_name +="_has_ssip"
         if has_hins4 == 1:
-            file_name = file_name + "_has_hins4"
+            file_name += "_has_hins4"
         if has_snap == 1:
-            file_name = file_name + "_has_snap"
+            file_name += "_has_snap"
         add_col = True
 
     # Determine if any covered populations are used
@@ -685,6 +685,7 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
             # Reorder the columns
             main_df = main_df[columns]
 
+        # Drop the index
 
         return main_df, file_name
 
@@ -794,3 +795,8 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
         new_df.to_csv("zcta.csv", index=False)
 
         return new_df, file_name
+
+
+
+# if __name__ == '__main__':
+#     print(determine_eligibility("../Data/", povpip=120, has_pap=1, has_ssip=1, has_hins4=1, has_snap=1, geography="State", hispanic=1))
