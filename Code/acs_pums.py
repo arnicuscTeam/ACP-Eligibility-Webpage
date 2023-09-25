@@ -300,21 +300,21 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
             "cd118", "United_States_Public-Use-Microdata-Area-(Puma)_to_118Th-Congress-(2023-2024).csv"),
         "State": ("state", "United_States_Public-Use-Microdata-Area-(Puma)_to_State.csv"),
         "County": ("county", "United_States_Public-Use-Microdata-Area-(Puma)_to_County.csv"),
-        "ZIP/ZCTA": ("zcta", "United_States_Public-Use-Microdata-Area-(Puma)_to_ZIP-ZCTA.csv"),
-        "Unified school district": (
-            "sduni20", "United_States_Public-Use-Microdata-Area-(Puma)_to_Unified-School-District.csv"),
-        "Metropolitan division": (
-            "metdiv20", "United_States_Public-Use-Microdata-Area-(Puma)_to_Metropolitan-Division.csv")
+        "ZIP/ZCTA": ("zcta", "United_States_Public-Use-Microdata-Area-(Puma)_to_ZIP-ZCTA.csv")
     }
+    geo_col = geography_mapping[geography][0]
 
     # Get the code column and crosswalk file
-    code_column, cw_name = geography_mapping[geography]
+    if geo_col == "zcta":
+        code_column, cw_name = geography_mapping[geography]
 
-    # Set the crosswalk file
-    cw_file = cross_walk_folder + cw_name
+        # Set the crosswalk file
+        cw_file = cross_walk_folder + cw_name
 
-    # Create the columns for the dataframe
-    columns = ["puma22", "Num Eligible", "Num Ineligible", "Percentage Eligible"]
+    if geo_col == "zcta":
+        columns = ["puma22", "Num Eligible", "Num Ineligible", "Percentage Eligible"]
+    else:
+        columns = [geo_col, "Num Eligible", "Num Ineligible", "Percentage Eligible"]
 
     # Initialize the variables for the columns of covered populations
     covered_populations = [
@@ -334,94 +334,6 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
     for population_name, population_var in covered_populations:
         if locals()[population_var] == 1:
             columns.append(population_name + " Eligible")
-
-    # Create a dataframe to store the results, which will first be stored in puma
-    main_df = pd.DataFrame(columns=columns)
-
-    # Iterate through all folders in the State data folder
-    for state in os.listdir(state_folder):
-        # Save the path to the state folder
-        state_files = state_folder + state + "/"
-        # Iterate through all files in the state folder
-        for file in os.listdir(state_files):
-            if file.endswith(".zip"):
-                # Delete the file
-                os.remove(state_files + file)
-            # Only read the csv files
-            if file.endswith(".csv"):
-                # Read the file
-                temp_df = pd.read_csv(state_files + file, header=0)
-
-                # Drop SERIALNO column
-                temp_df = temp_df.drop(columns=["SERIALNO"])
-
-                # Turn all acp_eligible values to 0
-                temp_df["acp_eligible"] = 0
-
-                # If the povpip is not 0, then use it as a criteria
-                if povpip != 0:
-                    # Turn all acp_eligible values to 1 if they meet the criteria and if we are using the criteria
-                    temp_df.loc[(temp_df["POVPIP"] <= povpip) | ((temp_df["has_pap"] == 1) & (has_pap == 1)) |
-                                ((temp_df["has_ssip"] == 1) & (has_ssip == 1)) |
-                                ((temp_df["has_hins4"] == 1) & (has_hins4 == 1)) |
-                                ((temp_df["has_snap"] == 1) & (has_snap == 1)), "acp_eligible"] = 1
-
-                # If the povpip is 0, then use the other criteria
-                else:
-                    temp_df.loc[((temp_df["has_pap"] == 1) & (has_pap == 1)) |
-                                ((temp_df["has_ssip"] == 1) & (has_ssip == 1)) |
-                                ((temp_df["has_hins4"] == 1) & (has_hins4 == 1)) |
-                                ((temp_df["has_snap"] == 1) & (has_snap == 1)), "acp_eligible"] = 1
-
-                # Find the total number eligible for every PUMA_person
-                unique_puma_person = temp_df["PUMA_person"].unique()
-
-                # Iterate through every PUMA_person
-                for puma_person in unique_puma_person:
-                    # Create a dataframe for the PUMA_person
-                    puma_df = temp_df.loc[temp_df["PUMA_person"] == puma_person]
-
-                    # Find the number eligible and ineligible
-                    eligible_df = puma_df.loc[puma_df["acp_eligible"] == 1]
-                    ineligible_df = puma_df.loc[puma_df["acp_eligible"] == 0]
-
-                    eligible = eligible_df["WGTP"].sum()
-                    ineligible = ineligible_df["WGTP"].sum()
-
-                    # Calculate the percentage eligible
-                    percentage_eligible = eligible / (eligible + ineligible)
-
-                    # Create a list to store the data
-                    data = [puma_person, eligible, ineligible, percentage_eligible]
-
-                    # If the covered populations are used, then add the number eligible for each population
-                    for population_name, population_var in covered_populations:
-                        if locals()[population_var] == 1:
-                            data.append(eligible_df[population_name].sum())
-
-                    # Add the puma_person and percentage eligible to the main dataframe
-                    new_df = pd.DataFrame([data], columns=columns)
-
-                    # If the main df is empty, set it equal to the new df
-                    if main_df.empty:
-                        main_df = new_df
-                    else:
-                        # Add the new dataframe to the main dataframe
-                        main_df = pd.concat([main_df, new_df], axis=0)
-
-    # Sort the main dataframe by puma22
-    main_df.sort_values(by=["puma22"], inplace=True)
-
-    # Round the percentage eligible column to two decimal places
-    main_df["Percentage Eligible"] = (main_df["Percentage Eligible"] * 100).round(2)
-
-    # PUMAs are seven digits, so add leading zeros
-    main_df["puma22"] = main_df["puma22"].astype(str)
-    main_df["puma22"] = main_df["puma22"].str.zfill(7)
-
-    # If it is using 2010 PUMAs, then crosswalk the data to 2020 PUMAs
-    if '0600102' in main_df['puma22'].values:
-        main_df = crossWalkOldPumaNewPuma(main_df, puma_equivalency)
 
     # Create the file name
     file_name = "percentage_eligible"
@@ -455,16 +367,158 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
             if locals()[population_var] == 1:
                 file_name += "_" + population_var
 
-    # If the geography is PUMA, then do not crosswalk the data
-    if code_column == "puma22":
-        # If we are looking at changes, add the current percentage eligible column
+    file_name += f"-{geo_col}.csv"
+
+    # Create a dataframe to store the results, which will first be stored in puma
+    main_df = pd.DataFrame(columns=columns)
+
+    # Iterate through all folders in the State data folder
+    for state in os.listdir(state_folder):
+        # Save the path to the state folder
+        state_files = state_folder + state + "/"
+        # Iterate through all files in the state folder
+        for file in os.listdir(state_files):
+            if file.endswith(".zip"):
+                # Delete the file
+                os.remove(state_files + file)
+            # Only read the csv files
+            if file.endswith(f"{geo_col}.csv") and geo_col != "zcta":
+                # Read the file
+                temp_df = pd.read_csv(state_files + file, header=0)
+
+                # Turn all acp_eligible values to 0
+                temp_df["acp_eligible"] = 0
+
+                # If the povpip is not 0, then use it as a criteria
+                if povpip != 0:
+                    # Turn all acp_eligible values to 1 if they meet the criteria and if we are using the criteria
+                    temp_df.loc[(temp_df["POVPIP"] <= povpip) | ((temp_df["has_pap"] == 1) & (has_pap == 1)) |
+                                ((temp_df["has_ssip"] == 1) & (has_ssip == 1)) |
+                                ((temp_df["has_hins4"] == 1) & (has_hins4 == 1)) |
+                                ((temp_df["has_snap"] == 1) & (has_snap == 1)), "acp_eligible"] = 1
+
+                # If the povpip is 0, then use the other criteria
+                else:
+                    temp_df.loc[((temp_df["has_pap"] == 1) & (has_pap == 1)) |
+                                ((temp_df["has_ssip"] == 1) & (has_ssip == 1)) |
+                                ((temp_df["has_hins4"] == 1) & (has_hins4 == 1)) |
+                                ((temp_df["has_snap"] == 1) & (has_snap == 1)), "acp_eligible"] = 1
+
+                # Find the total number eligible for every PUMA_person
+                unique_puma_person = temp_df[geo_col].unique()
+
+                # Iterate through every PUMA_person
+                for code in unique_puma_person:
+                    # Create a dataframe for the PUMA_person
+                    puma_df = temp_df.loc[temp_df[geo_col] == code]
+
+                    # Find the number eligible and ineligible
+                    eligible_df = puma_df.loc[puma_df["acp_eligible"] == 1]
+                    ineligible_df = puma_df.loc[puma_df["acp_eligible"] == 0]
+
+                    eligible = eligible_df["WGTP"].sum()
+                    ineligible = ineligible_df["WGTP"].sum()
+
+                    # Calculate the percentage eligible
+                    percentage_eligible = ((eligible / (eligible + ineligible)) * 100).round(2)
+
+                    # Create a list to store the data
+                    data = [code, eligible, ineligible, percentage_eligible]
+
+                    # If the covered populations are used, then add the number eligible for each population
+                    for population_name, population_var in covered_populations:
+                        if locals()[population_var] == 1:
+                            data.append(eligible_df[population_name].sum())
+
+                    # Add the puma_person and percentage eligible to the main dataframe
+                    new_df = pd.DataFrame([data], columns=columns)
+
+                    # If the main df is empty, set it equal to the new df
+                    if main_df.empty:
+                        main_df = new_df
+                    else:
+                        # Add the new dataframe to the main dataframe
+                        main_df = pd.concat([main_df, new_df], axis=0)
+
+
+            elif geo_col == "zcta" and file.endswith("puma22.csv"):
+                # Read the file
+                temp_df = pd.read_csv(state_files + file, header=0)
+
+                # Turn all acp_eligible values to 0
+                temp_df["acp_eligible"] = 0
+
+                # If the povpip is not 0, then use it as a criteria
+                if povpip != 0:
+                    # Turn all acp_eligible values to 1 if they meet the criteria and if we are using the criteria
+                    temp_df.loc[(temp_df["POVPIP"] <= povpip) | ((temp_df["has_pap"] == 1) & (has_pap == 1)) |
+                                ((temp_df["has_ssip"] == 1) & (has_ssip == 1)) |
+                                ((temp_df["has_hins4"] == 1) & (has_hins4 == 1)) |
+                                ((temp_df["has_snap"] == 1) & (has_snap == 1)), "acp_eligible"] = 1
+
+                # If the povpip is 0, then use the other criteria
+                else:
+                    temp_df.loc[((temp_df["has_pap"] == 1) & (has_pap == 1)) |
+                                ((temp_df["has_ssip"] == 1) & (has_ssip == 1)) |
+                                ((temp_df["has_hins4"] == 1) & (has_hins4 == 1)) |
+                                ((temp_df["has_snap"] == 1) & (has_snap == 1)), "acp_eligible"] = 1
+
+                # Find the total number eligible for every PUMA_person
+                unique_puma_person = temp_df["puma22"].unique()
+
+                # Iterate through every PUMA_person
+                for code in unique_puma_person:
+                    # Create a dataframe for the PUMA_person
+                    puma_df = temp_df.loc[temp_df["puma22"] == code]
+
+                    # Find the number eligible and ineligible
+                    eligible_df = puma_df.loc[puma_df["acp_eligible"] == 1]
+                    ineligible_df = puma_df.loc[puma_df["acp_eligible"] == 0]
+
+                    eligible = eligible_df["WGTP"].sum()
+                    ineligible = ineligible_df["WGTP"].sum()
+
+                    # Calculate the percentage eligible
+                    percentage_eligible = ((eligible / (eligible + ineligible)) * 100).round(2)
+
+                    # Create a list to store the data
+                    data = [code, eligible, ineligible, percentage_eligible]
+
+                    # If the covered populations are used, then add the number eligible for each population
+                    for population_name, population_var in covered_populations:
+                        if locals()[population_var] == 1:
+                            data.append(eligible_df[population_name].sum())
+
+                    # Add the puma_person and percentage eligible to the main dataframe
+                    new_df = pd.DataFrame([data], columns=columns)
+
+                    # If the main df is empty, set it equal to the new df
+                    if main_df.empty:
+                        main_df = new_df
+                    else:
+                        # Add the new dataframe to the main dataframe
+                        main_df = pd.concat([main_df, new_df], axis=0)
+
+
+    if geo_col != "zcta":
+        main_df.sort_values(by=[geo_col], inplace=True)
+
+        if geo_col == "puma22":
+            main_df["puma22"] = main_df["puma22"].astype(str).str.zfill(7)
+        elif geo_col == "state":
+            main_df["state"] = main_df["state"].astype(str).str.zfill(2)
+        elif geo_col == "county" or geo_col == "metdiv20":
+            main_df[geo_col] = main_df[geo_col].astype(str).str.zfill(5)
+        elif geo_col == "cd118":
+            main_df["cd118"] = main_df["cd118"].astype(str).str.zfill(4)
+
         if add_col:
             # Read the original file
             if (aian == 1 or asian == 1 or black == 1 or nhpi == 1 or white == 1 or hispanic == 1 or veteran == 1 or
                     elderly == 1 or disability == 1 or eng_very_well == 1):
-                original_file = current_data_folder + "eligibility-by-covered_populations-puma22.csv"
+                original_file = current_data_folder + f"eligibility-by-covered_populations-{geo_col}.csv"
             else:
-                original_file = current_data_folder + "eligibility-by-puma22.csv"
+                original_file = current_data_folder + f"eligibility-by-{geo_col}.csv"
             original_df = pd.read_csv(original_file, header=0, dtype={"puma22": str})
 
             # Rename all the columns to have "Current" in front of them
@@ -500,9 +554,9 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
                 if locals()[population_var] == 1:
                     main_df["difference_" + population_var] = main_df[population_name + " Eligible"] - main_df[
                         "Current " + population_name + " Eligible"]
-                    main_df["difference_percentage_" + population_var] = (main_df["difference_" + population_var] /
+                    main_df["difference_percentage_" + population_var] = ((main_df["difference_" + population_var] /
                                                                           main_df["Current " + population_name +
-                                                                                  " Eligible"]) * 100
+                                                                                  " Eligible"]) * 100).round(2)
                     main_df = main_df.drop(
                         columns=["Current " + population_name + " Eligible", "difference_" + population_var])
 
@@ -539,27 +593,111 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
             # Rename the "Percentage Eligible" column to "New Percentage Eligible"
             main_df = main_df.rename(columns={"Percentage Eligible": "New Percentage Eligible"})
 
-        # Save the data
-        file_name += "-puma22.csv"
+            main_df = main_df.fillna(0)
 
-        main_df = main_df.astype({code_column: str})
-        main_df[code_column] = main_df[code_column].str.zfill(7)
+        if geo_col == "county":
+            if "rural" not in main_df.columns:
+                # Download the covered population file
+                covered_pops_df = pd.read_csv(covered_populations_folder + "covered_populations.csv")
 
-        main_df = main_df.fillna(0)
+                # Rename the columns
+                covered_pops_df = covered_pops_df.rename(columns={"geo_id": "county"})
 
-        # Return the df and the file name
+                # Turn the county column into a string and zero fill it
+                covered_pops_df["county"] = covered_pops_df["county"].astype(str)
+                covered_pops_df["county"] = covered_pops_df["county"].str.zfill(5)
+
+                main_df["county"] = main_df["county"].astype(str)
+                main_df["county"] = main_df["county"].str.zfill(5)
+
+                # Only keep county and rural columns
+                covered_pops_df = covered_pops_df[["county", "rural"]]
+
+                # Merge the dataframes
+                main_df = pd.merge(main_df, covered_pops_df, on="county", how="left")
+
+            # Move the rural column to the second position
+            columns = main_df.columns.tolist()
+
+            # Move the rural column to the second position
+            columns.remove("rural")
+
+            # Add the rural column to the second position
+            columns.insert(1, "rural")
+
+            # Reorder the columns
+            main_df = main_df[columns]
+            if "CountyName" not in main_df.columns.tolist():
+                # Read the crosswalk file
+                df = pd.read_csv(main_df, header=0, dtype={"county": str})
+
+                # Drop the duplicate county rows
+                df = df.drop_duplicates(subset=["county"])
+
+                df["county"] = df["county"].astype(str)
+                df["county"] = df["county"].str.zfill(5)
+
+                main_df["county"] = main_df["county"].astype(str)
+                main_df["county"] = main_df["county"].str.zfill(5)
+
+                # Add the "CountyName" column to the new dataframe
+                main_df = pd.merge(main_df, df[["county", "CountyName"]], on="county", how="left")
+
+            # Move the CountyName column to the second position
+            columns = main_df.columns.tolist()
+
+            # Remove the CountyName column
+            columns.remove("CountyName")
+
+            # Add the CountyName column to the second position
+            columns.insert(1, "CountyName")
+
+            # Reorder the columns
+            main_df = main_df[columns]
+
+        # If the code column is metdiv, then add the metdiv name column
+        if geo_col == "metdiv20":
+            if "MetDivName" not in main_df.columns.tolist():
+                # Read the crosswalk file
+                df = pd.read_csv(cw_file, header=0, dtype={"metdiv20": str})
+
+                # Drop the duplicate metdiv rows
+                df = df.drop_duplicates(subset=["metdiv20"])
+
+                df["metdiv20"] = df["metdiv20"].astype(str)
+                df["metdiv20"] = df["metdiv20"].str.zfill(5)
+
+                main_df["metdiv20"] = main_df["metdiv20"].astype(str)
+                main_df["metdiv20"] = main_df["metdiv20"].str.zfill(5)
+
+                # Add the "MetDivName" column to the new dataframe
+                main_df = pd.merge(main_df, df[["metdiv20", "MetDivName"]], on="metdiv20", how="left")
+
+            # Move the MetDivName column to the second position
+            columns = main_df.columns.tolist()
+
+            # Remove the MetDivName column
+            columns.remove("MetDivName")
+
+            # Add the MetDivName column to the second position
+            columns.insert(1, "MetDivName")
+
+            # Reorder the columns
+            main_df = main_df[columns]
+
+
         return main_df, file_name
 
-    # Else, crosswalk the data
     else:
+        main_df["puma22"] = main_df["puma22"].astype(str).str.zfill(7)
+
+        main_df.sort_values(by=["puma22"], inplace=True)
+
         # Drop the percentage eligible column
         main_df = main_df.drop(columns=["Percentage Eligible"])
 
         # Read the crosswalk file
         dc, col_name = code_to_source_dict(cw_file, "puma")
-
-        # Add the geography to the file name
-        file_name += f"-{col_name}.csv"
 
         # Crosswalk the data
         new_df = crosswalkPUMAData(main_df, dc, "puma22", col_name)
@@ -649,111 +787,10 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
             # Reorder the columns
             new_df = new_df[columns]
 
-            # If the code column is county, then add the rural column and county name column
-            if code_column == "county":
-                if "rural" not in new_df.columns.tolist():
-                    # Download the covered population file
-                    covered_pops_df = pd.read_csv(covered_populations_folder + "covered_populations.csv")
-
-                    # Rename the columns
-                    covered_pops_df = covered_pops_df.rename(columns={"geo_id": "county"})
-
-                    # Turn the county column into a string and zero fill it
-                    covered_pops_df["county"] = covered_pops_df["county"].astype(str)
-                    covered_pops_df["county"] = covered_pops_df["county"].str.zfill(5)
-
-                    new_df["county"] = new_df["county"].astype(str)
-                    new_df["county"] = new_df["county"].str.zfill(5)
-
-                    # Only keep county and rural columns
-                    covered_pops_df = covered_pops_df[["county", "rural"]]
-
-                    # Merge the dataframes
-                    new_df = pd.merge(new_df, covered_pops_df, on="county", how="left")
-
-                # Move the rural column to the second position
-                columns = new_df.columns.tolist()
-
-                # Move the rural column to the second position
-                columns.remove("rural")
-
-                # Add the rural column to the second position
-                columns.insert(1, "rural")
-
-                # Reorder the columns
-                new_df = new_df[columns]
-                if "CountyName" not in new_df.columns.tolist():
-                    # Read the crosswalk file
-                    df = pd.read_csv(cw_file, header=0, dtype={"county": str})
-
-                    # Drop the duplicate county rows
-                    df = df.drop_duplicates(subset=["county"])
-
-                    df["county"] = df["county"].astype(str)
-                    df["county"] = df["county"].str.zfill(5)
-
-                    new_df["county"] = new_df["county"].astype(str)
-                    new_df["county"] = new_df["county"].str.zfill(5)
-
-                    # Add the "CountyName" column to the new dataframe
-                    new_df = pd.merge(new_df, df[["county", "CountyName"]], on="county", how="left")
-
-                # Move the CountyName column to the second position
-                columns = new_df.columns.tolist()
-
-                # Remove the CountyName column
-                columns.remove("CountyName")
-
-                # Add the CountyName column to the second position
-                columns.insert(1, "CountyName")
-
-                # Reorder the columns
-                new_df = new_df[columns]
-
-            # If the code column is metdiv, then add the metdiv name column
-            if code_column == "metdiv20":
-                if "MetDivName" not in new_df.columns.tolist():
-                    # Read the crosswalk file
-                    df = pd.read_csv(cw_file, header=0, dtype={"metdiv20": str})
-
-                    # Drop the duplicate metdiv rows
-                    df = df.drop_duplicates(subset=["metdiv20"])
-
-                    df["metdiv20"] = df["metdiv20"].astype(str)
-                    df["metdiv20"] = df["metdiv20"].str.zfill(5)
-
-                    new_df["metdiv20"] = new_df["metdiv20"].astype(str)
-                    new_df["metdiv20"] = new_df["metdiv20"].str.zfill(5)
-
-                    # Add the "MetDivName" column to the new dataframe
-                    new_df = pd.merge(new_df, df[["metdiv20", "MetDivName"]], on="metdiv20", how="left")
-
-                # Move the MetDivName column to the second position
-                columns = new_df.columns.tolist()
-
-                # Remove the MetDivName column
-                columns.remove("MetDivName")
-
-                # Add the MetDivName column to the second position
-                columns.insert(1, "MetDivName")
-
-                # Reorder the columns
-                new_df = new_df[columns]
-
         new_df = new_df.fillna(0)
 
-        new_df = new_df.astype({code_column: str})
+        new_df["zcta"] = new_df["zcta"].astype(str).str.zfill(5)
 
-        if code_column == "state":
-            new_df[code_column] = new_df[code_column].str.zfill(2)
-        elif code_column == "county":
-            new_df[code_column] = new_df[code_column].str.zfill(5)
-        elif code_column == "zcta":
-            new_df[code_column] = new_df[code_column].str.zfill(5)
-        elif code_column == "metdiv20":
-            new_df[code_column] = new_df[code_column].str.zfill(5)
-        elif code_column == "cd118":
-            new_df[code_column] = new_df[code_column].str.zfill(4)
+        new_df.to_csv("zcta.csv", index=False)
 
-        # Return the df and the file name
         return new_df, file_name
