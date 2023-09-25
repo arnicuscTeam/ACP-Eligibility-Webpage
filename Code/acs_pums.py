@@ -300,6 +300,8 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
             "cd118", "United_States_Public-Use-Microdata-Area-(Puma)_to_118Th-Congress-(2023-2024).csv"),
         "State": ("state", "United_States_Public-Use-Microdata-Area-(Puma)_to_State.csv"),
         "County": ("county", "United_States_Public-Use-Microdata-Area-(Puma)_to_County.csv"),
+        "Metropolitan division": (
+            "metdiv20", "United_States_Public-Use-Microdata-Area-(Puma)_to_Metropolitan-Division.csv"),
         "ZIP/ZCTA": ("zcta", "United_States_Public-Use-Microdata-Area-(Puma)_to_ZIP-ZCTA.csv")
     }
     geo_col = geography_mapping[geography][0]
@@ -499,6 +501,7 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
                         # Add the new dataframe to the main dataframe
                         main_df = pd.concat([main_df, new_df], axis=0)
 
+    print(main_df.columns)
 
     if geo_col != "zcta":
         main_df.sort_values(by=[geo_col], inplace=True)
@@ -685,7 +688,7 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
             # Reorder the columns
             main_df = main_df[columns]
 
-        # Drop the index
+        print(main_df.columns)
 
         return main_df, file_name
 
@@ -798,5 +801,5 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
 
 
 
-# if __name__ == '__main__':
-#     print(determine_eligibility("../Data/", povpip=120, has_pap=1, has_ssip=1, has_hins4=1, has_snap=1, geography="State", hispanic=1))
+if __name__ == '__main__':
+    print(determine_eligibility("../Data/", povpip=120, has_pap=1, has_ssip=1, has_hins4=1, has_snap=1, geography="State", hispanic=1))
