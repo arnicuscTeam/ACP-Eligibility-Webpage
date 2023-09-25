@@ -412,8 +412,6 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
                         # Add the new dataframe to the main dataframe
                         main_df = pd.concat([main_df, new_df], axis=0)
 
-    print(main_df.columns)
-
     if geo_col != "zcta":
         main_df.sort_values(by=[geo_col], inplace=True)
 
