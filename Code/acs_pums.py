@@ -88,95 +88,6 @@ def crosswalkPUMAData(df: pd.DataFrame, crosswalk_dict: dict, source_column: str
     return new_df
 
 
-# Function to crosswalk PUMS data from 2012 pumas to 2020 pumas
-def crossWalkOldPumaNewPuma(df: pd.DataFrame, crosswalk_file: str) -> pd.DataFrame:
-    """
-    This function will crosswalk the PUMS data from 2012 pumas to 2020 pumas. It does so by reading the crosswalk file
-    and creating a dictionary with the 2012 puma codes as keys and the 2020 puma codes as values. It then iterates
-    through the dictionary and multiplies the data by the afact. It then aggregates the data by the 2020 puma code.
-    :param df: The dataframe with the eligibility data
-    :param crosswalk_file: The path to the crosswalk file
-    :return: A dataframe with the eligibility data crosswalked to 2020 pumas
-    """
-
-    # Clean the puma column
-    df["puma22"] = df["puma22"].astype(str)
-    df["puma22"] = df["puma22"].str.zfill(7)
-
-    # Drop the percentage eligible column
-    df = df.drop(columns=["Percentage Eligible"])
-
-    # Store the columns in a list
-    columns = df.columns.tolist()
-
-    # Get the dictionary from the crosswalk file
-    dictionary, col = code_to_source_dict(crosswalk_file, "puma12")
-    # Dict: {puma22: [(puma12, afact), (puma12, afact), (puma12, afact)]}
-
-    # Turn the df into a dictionary
-    df_dict = df.set_index("puma22").T.to_dict("list")
-    # dict: {puma12: [eligible]}
-
-    new_df = pd.DataFrame()
-
-    # Crosswalk the puma12 to puma22
-
-    # Iterate through the dictionary keys
-    for puma22 in dictionary.keys():
-
-        # Iterate through the tuples in the dictionary
-        for tup in dictionary[puma22]:
-            # Initialize the new data list
-            new_data = []
-            # Get the puma12 and afact
-            puma12 = tup[0]
-            afact = tup[1]
-
-            # Check if the puma12 is in the df_dict
-            if puma12 in df_dict.keys():
-                # Get the data
-                data = df_dict[puma12]
-
-                # Add the puma22 to the new data list
-                new_data.append(puma22)
-
-                # Iterate through the data and multiply it by the afact
-                for d in data:
-                    # Multiply the data by the afact and round it, then add it to the new data list
-                    new_data.append(int(round(d * afact)))
-
-                # Create a dataframe with the new data
-                temp_df = pd.DataFrame([new_data], columns=columns)
-
-                # Add the dataframe to the new dataframe
-                new_df = pd.concat([new_df, temp_df], axis=0)
-
-    # Aggregate the data by the puma
-    new_df = new_df.groupby(["puma22"]).sum()
-
-    # Reset the index
-    new_df.reset_index(inplace=True)
-
-    # Zero fill the code column
-    new_df["puma22"] = new_df["puma22"].str.zfill(7)
-
-    # Calculate the percentage eligible
-    new_df["Percentage Eligible"] = new_df["Num Eligible"] / (new_df["Num Eligible"] + new_df["Num Ineligible"]) * 100
-
-    # Round the percentage eligible to two decimal places
-    new_df["Percentage Eligible"] = new_df["Percentage Eligible"].round(2)
-
-    # Move the percentage eligible column to the 4th column
-    cols = new_df.columns.tolist()
-    cols = cols[:3] + cols[-1:] + cols[3:-1]
-    new_df = new_df[cols]
-
-    # Delete variables that are no longer needed
-    del df_dict, dictionary, df
-
-    return new_df
-
-
 def code_to_source_dict(crosswalk_file: str, source_col: str):
     code_col = ""
 
@@ -295,13 +206,8 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
 
     # Dictionary to map the geography to the code column and crosswalk file
     geography_mapping = {
-        "Public-use microdata area (PUMA)": ("puma22", "puma_equivalency.csv"),
-        "118th Congress (2023-2024)": (
-            "cd118", "United_States_Public-Use-Microdata-Area-(Puma)_to_118Th-Congress-(2023-2024).csv"),
-        "State": ("state", "United_States_Public-Use-Microdata-Area-(Puma)_to_State.csv"),
-        "County": ("county", "United_States_Public-Use-Microdata-Area-(Puma)_to_County.csv"),
-        "Metropolitan division": (
-            "metdiv20", "United_States_Public-Use-Microdata-Area-(Puma)_to_Metropolitan-Division.csv"),
+        "Public-use microdata area (PUMA)": ("puma22", ""), "118th Congress (2023-2024)": ("cd118", ""),
+        "State": ("state", ""), "County": ("county", ""), "Metropolitan division": ("metdiv20", ""),
         "ZIP/ZCTA": ("zcta", "United_States_Public-Use-Microdata-Area-(Puma)_to_ZIP-ZCTA.csv")
     }
     geo_col = geography_mapping[geography][0]
@@ -799,7 +705,3 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
 
         return new_df, file_name
 
-
-
-if __name__ == '__main__':
-    print(determine_eligibility("../Data/", povpip=120, has_pap=1, has_ssip=1, has_hins4=1, has_snap=1, geography="State", hispanic=1))
