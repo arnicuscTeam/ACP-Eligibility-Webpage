@@ -507,8 +507,11 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
 
             main_df = main_df.fillna(0)
 
-            # Aggregate the data by the code column
+            # Combine the rows with the same code by adding every column
             main_df = main_df.groupby(geo_col).sum()
+
+            # Reset the index
+            main_df.reset_index(inplace=True)
 
         if geo_col == "county":
             if "rural" not in main_df.columns:
@@ -708,4 +711,3 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
         new_df.to_csv("zcta.csv", index=False)
 
         return new_df, file_name
-
