@@ -413,6 +413,13 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
                         main_df = pd.concat([main_df, new_df], axis=0)
 
     if geo_col != "zcta":
+
+        # Combine the rows with the same code by adding every column
+        main_df = main_df.groupby(geo_col).sum()
+
+        # Reset the index
+        main_df.reset_index(inplace=True)
+
         main_df.sort_values(by=[geo_col], inplace=True)
 
         if geo_col == "puma22":
@@ -507,12 +514,6 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
 
             main_df = main_df.fillna(0)
 
-            # Combine the rows with the same code by adding every column
-            main_df = main_df.groupby(geo_col).sum()
-
-            # Reset the index
-            main_df.reset_index(inplace=True)
-
         if geo_col == "county":
             if "rural" not in main_df.columns:
                 # Download the covered population file
@@ -606,6 +607,13 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
         return main_df, file_name
 
     else:
+
+        # Combine the rows with the same code by adding every column
+        main_df = main_df.groupby("puma22").sum()
+
+        # Reset the index
+        main_df.reset_index(inplace=True)
+
         main_df["puma22"] = main_df["puma22"].astype(str).str.zfill(7)
 
         main_df.sort_values(by=["puma22"], inplace=True)
@@ -618,6 +626,10 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
 
         # Crosswalk the data
         new_df = crosswalkPUMAData(main_df, dc, "puma22", col_name)
+
+        new_df = new_df.groupby("zcta").sum()
+
+        new_df.reset_index(inplace=True)
 
         # Make the percentage eligible column
         new_df["New Percentage Eligible"] = new_df["Num Eligible"] / (new_df["Num Eligible"] + new_df["Num Ineligible"])
