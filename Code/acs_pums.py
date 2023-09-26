@@ -613,12 +613,17 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
         return main_df, file_name
 
     else:
+        main_df = main_df.drop(columns=["Percentage Eligible"])
 
         # Combine the rows with the same code by adding every column
         main_df = main_df.groupby("puma22").sum()
 
         # Reset the index
         main_df.reset_index(inplace=True)
+
+        # Calculate the percentage eligible
+        main_df["Percentage Eligible"] = ((main_df["Num Eligible"] / (main_df["Num Eligible"] +
+                                                                      main_df["Num Ineligible"])) * 100).round(2)
 
         main_df["puma22"] = main_df["puma22"].astype(str).str.zfill(7)
 
