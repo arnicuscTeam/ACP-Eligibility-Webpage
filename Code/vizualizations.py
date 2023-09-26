@@ -123,7 +123,7 @@ def load_map(data_dir: str, geography: str, eligibility_df: pd.DataFrame) -> fol
 
         mergeon = "GEOID20"
 
-        name = "CountyName"
+        name = "cd118"
 
     elif geography == "State":
         eligibility_df[geo_dict[geography]] = eligibility_df[geo_dict[geography]].astype(str).str.zfill(2)
