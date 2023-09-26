@@ -56,7 +56,8 @@ if st.button('Submit'):
                                           not_eng_very_well)
     st.download_button(label='Download Data', data=df.to_csv(index=False), file_name=file_name, mime='text/csv')
 
-    if geography != "ZIP/ZCTA" and geography != "County":
+    if geography != "ZIP/ZCTA" and geography != "County" and (povpip != 200 or has_pap != 1 or has_ssip != 1 or
+                                                              has_hins4 != 1 or has_snap != 1):
         st.subheader('Map')
 
         st.write("Loading map...")
