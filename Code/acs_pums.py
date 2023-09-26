@@ -264,7 +264,7 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
         if has_pap == 1:
             file_name += "_has_pap"
         if has_ssip == 1:
-            file_name +="_has_ssip"
+            file_name += "_has_ssip"
         if has_hins4 == 1:
             file_name += "_has_hins4"
         if has_snap == 1:
@@ -480,8 +480,8 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
                     main_df["difference_" + population_var] = main_df[population_name + " Eligible"] - main_df[
                         "Current " + population_name + " Eligible"]
                     main_df["difference_percentage_" + population_var] = ((main_df["difference_" + population_var] /
-                                                                          main_df["Current " + population_name +
-                                                                                  " Eligible"]) * 100).round(2)
+                                                                           main_df["Current " + population_name +
+                                                                                   " Eligible"]) * 100).round(2)
                     main_df = main_df.drop(
                         columns=["Current " + population_name + " Eligible", "difference_" + population_var])
 
@@ -554,7 +554,7 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
             main_df = main_df[columns]
             if "CountyName" not in main_df.columns.tolist():
                 # Read the crosswalk file
-                df = pd.read_csv(main_df, header=0, dtype={"county": str})
+                df = pd.read_csv(cw_file, header=0, dtype={"county": str})
 
                 # Drop the duplicate county rows
                 df = df.drop_duplicates(subset=["county"])
@@ -734,3 +734,12 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
         new_df.to_csv("zcta.csv", index=False)
 
         return new_df, file_name
+
+
+# df, name = determine_eligibility("../Data/", povpip=200, has_pap=1, has_ssip=1, has_hins4=1, has_snap=1,
+#                                  geography="ZIP/ZCTA")
+# df, name = determine_eligibility("../Data/", povpip=200, has_pap=1, has_ssip=1, has_hins4=1, has_snap=1,
+#                                  geography="ZIP/ZCTA", aian=1, asian=1, black=1, nhpi=1, white=1, hispanic=1, veteran=1,
+#                                  elderly=1, disability=1, eng_very_well=1)
+#
+# df.to_csv(name, index=False)
