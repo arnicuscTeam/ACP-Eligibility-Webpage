@@ -735,11 +735,3 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
 
         return new_df, file_name
 
-
-# df, name = determine_eligibility("../Data/", povpip=200, has_pap=1, has_ssip=1, has_hins4=1, has_snap=1,
-#                                  geography="ZIP/ZCTA")
-# df, name = determine_eligibility("../Data/", povpip=200, has_pap=1, has_ssip=1, has_hins4=1, has_snap=1,
-#                                  geography="ZIP/ZCTA", aian=1, asian=1, black=1, nhpi=1, white=1, hispanic=1, veteran=1,
-#                                  elderly=1, disability=1, eng_very_well=1)
-#
-# df.to_csv(name, index=False)
