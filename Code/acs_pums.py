@@ -507,6 +507,9 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
 
             main_df = main_df.fillna(0)
 
+            # Aggregate the data by the code column
+            main_df = main_df.groupby(geo_col).sum()
+
         if geo_col == "county":
             if "rural" not in main_df.columns:
                 # Download the covered population file
