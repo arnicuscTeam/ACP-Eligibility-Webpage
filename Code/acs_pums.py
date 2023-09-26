@@ -212,7 +212,7 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
         "County": ("county", "United_States_Public-Use-Microdata-Area-(Puma)_to_County.csv"),
         "Metropolitan division":
             ("metdiv20", "United_States_Public-Use-Microdata-Area-(Puma)_to_Metropolitan-Division.csv"),
-        "ZIP/ZCTA": ("zcta", "United_States_Public-Use-Microdata-Area-(Puma)_to_ZIP-ZCTA.csv")
+        "ZIP/ZCTA": ("zcta", "United_States_Public-Use-Microdata-Area-(Puma)_to_Zip-Zcta.csv")
     }
     geo_col = geography_mapping[geography][0]
     cw_file = cross_walk_folder + geography_mapping[geography][1]
