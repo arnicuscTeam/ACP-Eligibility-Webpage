@@ -73,7 +73,7 @@ st.subheader('Eligibility Criteria')
 st.text("")
 
 # Slider for POVPIP
-povpip = st.slider('Income Eligibility Threshold', min_value=0, max_value=200, value=200, step=1)
+povpip = st.slider('Income Eligibility Threshold (% of FPL)', min_value=0, max_value=200, value=200, step=1)
 
 st.write("Check/uncheck boxes for participation in qualifying programs:")
 st.text("")

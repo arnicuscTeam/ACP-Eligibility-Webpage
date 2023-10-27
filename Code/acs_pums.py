@@ -253,22 +253,28 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
 
     # Boolean to determine if there was a change to see the difference in eligibility
     add_col = False
+    final_column = ""
 
     # If all the criteria are used, then do not add anything to the file name
     if povpip == 200 and has_pap == 1 and has_ssip == 1 and has_hins4 == 1 and has_snap == 1:
         file_name = "eligibility-by"
     # Else, add the criteria to the file name dynamically
     else:
-        if povpip != 200:
+        if povpip != 0:
             file_name += "_povpip_" + str(povpip)
+            final_column = "povpip_" + str(povpip)
         if has_pap == 1:
             file_name += "_has_pap"
+            final_column += "_has_pap"
         if has_ssip == 1:
             file_name += "_has_ssip"
+            final_column += "_has_ssip"
         if has_hins4 == 1:
             file_name += "_has_hins4"
+            final_column += "_has_hins4"
         if has_snap == 1:
             file_name += "_has_snap"
+            final_column += "_has_snap"
         add_col = True
 
     # Determine if any covered populations are used
@@ -477,16 +483,8 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
             # Calculate the difference between the two covered populations eligible columns
             for population_name, population_var in covered_populations:
                 if locals()[population_var] == 1:
-                    main_df["difference_" + population_var] = main_df[population_name + " Eligible"] - main_df[
-                        "Current " + population_name + " Eligible"]
-                    main_df["difference_percentage_" + population_var] = ((main_df["difference_" + population_var] /
-                                                                           main_df["Current " + population_name +
-                                                                                   " Eligible"]) * 100).round(2)
-                    main_df = main_df.drop(
-                        columns=["Current " + population_name + " Eligible", "difference_" + population_var])
-
-            # Drop numeric columns that are no longer needed
-            main_df = main_df.drop(columns=["Num Eligible", "Num Ineligible"])
+                    main_df = main_df.rename(
+                        columns={population_name + " Eligible": f"{final_column} {population_name} Eligible"})
 
             # Combine duplicate columns
             main_df = main_df.loc[:, ~main_df.columns.duplicated()]
@@ -516,7 +514,12 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
             main_df = main_df[columns]
 
             # Rename the "Percentage Eligible" column to "New Percentage Eligible"
-            main_df = main_df.rename(columns={"Percentage Eligible": "New Percentage Eligible"})
+            main_df = main_df.rename(columns={"Percentage Eligible": "New Percentage Eligible",
+                                              "Num Eligible": f"{final_column} Num Eligible",
+                                              "Num Ineligible": f"{final_column} Num Ineligible"})
+
+            # Drop new percentage eligible column
+            main_df = main_df.drop(columns=["New Percentage Eligible", "Current Percentage Eligible"])
 
             main_df = main_df.fillna(0)
 
@@ -610,6 +613,9 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
             # Reorder the columns
             main_df = main_df[columns]
 
+        if "Percentage Eligible" in main_df.columns:
+            main_df = main_df.drop(columns=["Percentage Eligible"])
+
         return main_df, file_name
 
     else:
@@ -643,10 +649,10 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
         new_df.reset_index(inplace=True)
 
         # Make the percentage eligible column
-        new_df["New Percentage Eligible"] = new_df["Num Eligible"] / (new_df["Num Eligible"] + new_df["Num Ineligible"])
+        new_df["Percentage Eligible"] = new_df["Num Eligible"] / (new_df["Num Eligible"] + new_df["Num Ineligible"])
 
         # Round the percentage eligible column to two decimal places
-        new_df["New Percentage Eligible"] = (new_df["New Percentage Eligible"] * 100).round(2)
+        new_df["Percentage Eligible"] = (new_df["Percentage Eligible"] * 100).round(2)
 
         # If we are looking at changes, add the current percentage eligible column
         if add_col:
@@ -674,7 +680,6 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
                         original_df = original_df.drop(columns=[population_name + " Eligible"])
 
             # Round the percentage eligible column to two decimal places
-            new_df["New Percentage Eligible"] = new_df["New Percentage Eligible"].round(2)
             original_df["Current Percentage Eligible"] = original_df["Current Percentage Eligible"].round(2)
 
             # Reset the index
@@ -689,16 +694,8 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
             # Calculate the difference between the two covered populations eligible columns
             for population_name, population_var in covered_populations:
                 if locals()[population_var] == 1:
-                    new_df["difference_" + population_var] = new_df[population_name + " Eligible"] - new_df[
-                        "Current " + population_name + " Eligible"]
-                    new_df["difference_percentage_" + population_var] = ((new_df["difference_" + population_var] /
-                                                                          new_df["Current " + population_name +
-                                                                                 " Eligible"]) * 100).round(2)
-                    new_df = new_df.drop(
-                        columns=[population_name + " Eligible", "Current " + population_name + " Eligible"])
-
-            # Drop numeric columns that are no longer needed
-            new_df = new_df.drop(columns=["Num Eligible", "Num Ineligible"])
+                    new_df = new_df.rename(
+                        columns={population_name + " Eligible": f"{final_column} {population_name} Eligible"})
 
             # Combine duplicate columns
             new_df = new_df.loc[:, ~new_df.columns.duplicated()]
@@ -727,11 +724,17 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
             # Reorder the columns
             new_df = new_df[columns]
 
+            # Rename the columns
+            new_df = new_df.rename(columns={"Num Eligible": f"{final_column} Num Eligible",
+                                            "Num Ineligible": f"{final_column} Num Ineligible"})
+
+            new_df = new_df.drop(columns=["Current Percentage Eligible"])
+
+        # Drop new percentage eligible column
+        new_df = new_df.drop(columns=["Percentage Eligible"])
+
         new_df = new_df.fillna(0)
 
         new_df["zcta"] = new_df["zcta"].astype(str).str.zfill(5)
 
-        new_df.to_csv("zcta.csv", index=False)
-
         return new_df, file_name
-
