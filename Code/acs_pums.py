@@ -247,6 +247,7 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
     for population_name, population_var in covered_populations:
         if locals()[population_var] == 1:
             columns.append(population_name + " Eligible")
+            columns.append(population_name + " Total")
 
     # Create the file name
     file_name = "percentage_eligible"
@@ -348,6 +349,7 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
                     for population_name, population_var in covered_populations:
                         if locals()[population_var] == 1:
                             data.append(eligible_df[population_name].sum())
+                            data.append(puma_df[population_name].sum())
 
                     # Add the puma_person and percentage eligible to the main dataframe
                     new_df = pd.DataFrame([data], columns=columns)
@@ -407,6 +409,7 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
                     for population_name, population_var in covered_populations:
                         if locals()[population_var] == 1:
                             data.append(eligible_df[population_name].sum())
+                            data.append(puma_df[population_name].sum())
 
                     # Add the puma_person and percentage eligible to the main dataframe
                     new_df = pd.DataFrame([data], columns=columns)

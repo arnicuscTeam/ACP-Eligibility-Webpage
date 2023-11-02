@@ -1,9 +1,7 @@
 import folium
 from Code.acs_pums import determine_eligibility
-from Code.vizualizations import load_map
 import pandas as pd
 import streamlit as st
-from streamlit_folium import folium_static as fs, st_folium as stf
 
 # Set page name
 st.set_page_config(page_title='ACP Eligibility', page_icon=':bar_chart:', layout='wide')
