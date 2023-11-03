@@ -9,11 +9,11 @@ def crosswalkPUMAData(df: pd.DataFrame, crosswalk_dict: dict, source_column: str
     This function will crosswalk the pums data from puma to another geography. It does so by reading the crosswalk file
     and creating a dictionary with the puma codes as keys and the new geography codes as values. It then iterates
     through the dictionary and multiplies the data by the afact. It then aggregates the data by the new geography code.
-    :param df: The dataframe with the puma data
-    :param crosswalk_dict: The dictionary with the crosswalk data
-    :param source_column: The column name for the source geography, which would be the puma column
-    :param target_column: The column name for the target geography, which would be the new geography column
-    :return: A dataframe with the puma data crosswalked to the new geography
+    :param df: The dataframe with the puma data.
+    :param crosswalk_dict: The dictionary with the crosswalk data.
+    :param source_column: The column name for the source geography, which would be the puma column.
+    :param target_column: The column name for the target geography, which would be the new geography column.
+    :return: A dataframe with the puma data crosswalked to the new geography.
     """
 
     columns = df.columns.tolist()
