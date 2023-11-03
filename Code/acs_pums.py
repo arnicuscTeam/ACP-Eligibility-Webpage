@@ -249,7 +249,7 @@ def determine_eligibility(data_dir: str, povpip: int = 200, has_pap: int = 1, ha
             columns.append(population_name + " Eligible")
 
     # Create the file name
-    file_name = "percentage_eligible"
+    file_name = "households_eligible"
 
     # Boolean to determine if there was a change to see the difference in eligibility
     add_col = False
